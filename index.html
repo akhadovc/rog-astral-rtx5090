@@ -1,0 +1,1470 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ROG Astral RTX 5090</title>
+<meta name="description" content="ASUS ROG Astral GeForce RTX 5090 haqida oʻzbek tilidagi interaktiv maqola: har bir qism 3D sahnada ajralib koʻrsatiladi.">
+<meta name="theme-color" content="#0a0e16">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0e16'/%3E%3Crect x='8' y='8' width='16' height='16' rx='2' fill='none' stroke='%23e48b51' stroke-width='2'/%3E%3Crect x='13' y='13' width='6' height='6' fill='%23e48b51'/%3E%3C/svg%3E">
+<link rel="preload" href="astral-model.bin" as="fetch" crossorigin>
+<meta property="og:type" content="article">
+<meta property="og:title" content="ASUS ROG Astral RTX 5090 · 3D anatomiya">
+<meta property="og:description" content="Oʻzbek tilidagi interaktiv maqola: karta qismlari 3D sahnada birma-bir tushuntiriladi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;600;700&display=swap">
+<style>
+html,body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+
+/* Layout: a fixed full-viewport 3D stage; a narrow column of reading panels scrolls over its left side and each panel steers the camera to one part of the card. Dark-first: the stage is a lit studio at night, copper = heat, cyan = air. */
+:root{
+  --bg:#0a0e16; --bg-2:#141b2c; --panel:rgba(11,16,27,.82); --panel-solid:#0e1421;
+  --line:rgba(150,168,200,.16); --line-strong:rgba(150,168,200,.34);
+  --fg:#e8ecf4; --fg-2:#c3cad8; --muted:#8d97ac;
+  --copper:#e48b51; --copper-soft:rgba(228,139,81,.22); --air:#62d2e4; --on-accent:#170d06;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#e9edf3; --bg-2:#fbfcfe; --panel:rgba(250,251,253,.88); --panel-solid:#ffffff;
+    --line:rgba(26,36,58,.14); --line-strong:rgba(26,36,58,.30);
+    --fg:#111624; --fg-2:#2b3344; --muted:#586278;
+    --copper:#a8501d; --copper-soft:rgba(168,80,29,.16); --air:#0b7c94; --on-accent:#ffffff;
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#e9edf3; --bg-2:#fbfcfe; --panel:rgba(250,251,253,.88); --panel-solid:#ffffff;
+  --line:rgba(26,36,58,.14); --line-strong:rgba(26,36,58,.30);
+  --fg:#111624; --fg-2:#2b3344; --muted:#586278;
+  --copper:#a8501d; --copper-soft:rgba(168,80,29,.16); --air:#0b7c94; --on-accent:#ffffff;
+  color-scheme:light;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:1.0625rem;line-height:1.62;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--copper);text-underline-offset:3px}
+a:hover{color:var(--fg)}
+
+/* ---------- stage ---------- */
+.stage{position:fixed;inset:0;z-index:0;background:radial-gradient(85% 75% at 66% 42%,var(--bg-2) 0%,var(--bg) 72%)}
+.stage canvas{display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab;outline:none}
+.stage canvas:active{cursor:grabbing}
+.loader{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;justify-items:center;gap:10px;width:min(15rem,64vw);font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);pointer-events:none;transition:opacity .5s ease}
+.loader.done{opacity:0}
+.loader-bar{width:100%;height:2px;background:var(--line)}
+.loader-bar span{display:block;height:100%;width:0;background:var(--copper);transition:width .25s ease}
+#loader-pct{color:var(--fg);font-variant-numeric:tabular-nums}
+.stage-note{position:absolute;right:clamp(16px,6vw,80px);bottom:24px;margin:0;max-width:22rem;font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.callout{position:absolute;left:0;top:0;pointer-events:none;opacity:0;transition:opacity .35s ease;will-change:transform}
+.callout.on{opacity:1}
+.callout .dot{position:absolute;left:-6px;top:-6px;width:12px;height:12px;border-radius:50%;border:2px solid var(--copper);background:var(--bg);box-shadow:0 0 0 7px var(--copper-soft)}
+.callout .lead{position:absolute;left:0;top:0;width:40px;height:1px;background:var(--copper);transform-origin:0 50%;transform:rotate(-40deg)}
+.callout .tag{position:absolute;left:30px;top:-62px;display:flex;flex-direction:column;gap:1px;padding:7px 11px 8px;white-space:nowrap;background:var(--panel-solid);border:1px solid var(--line-strong);font-family:var(--mono);font-size:.7rem;letter-spacing:.03em;line-height:1.35;color:var(--muted)}
+.callout .tag b{font-family:var(--body);font-size:.86rem;font-weight:600;letter-spacing:0;color:var(--fg)}
+.callout.flip .lead{transform:rotate(-140deg)}
+
+/* ---------- hud ---------- */
+.hud{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:16px;padding:calc(env(safe-area-inset-top,0px) + 12px) clamp(16px,4vw,40px) 12px;font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);pointer-events:none;background:linear-gradient(var(--bg),rgba(0,0,0,0))}
+.hud .brand{color:var(--fg)}
+.hud .brand i{font-style:normal;color:var(--copper)}
+.hud .part{margin-left:auto;color:var(--copper);text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hud .progress{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--line)}
+.hud .progress span{display:block;height:100%;width:0;background:var(--copper)}
+
+/* ---------- article ---------- */
+main{position:relative;z-index:1;pointer-events:none;padding-inline:clamp(16px,5vw,76px)}
+.step{min-height:96vh;display:flex;align-items:center;padding-block:14vh}
+.panel{pointer-events:auto;width:min(31rem,100%);padding:28px 28px 24px;background:var(--panel);border:1px solid var(--line);border-radius:3px;-webkit-backdrop-filter:blur(14px) saturate(1.15);backdrop-filter:blur(14px) saturate(1.15)}
+.panel > :last-child{margin-bottom:0}
+.eyebrow{margin:0 0 12px;font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--copper)}
+h1,h2{font-family:var(--display);font-weight:600;text-wrap:balance;color:var(--fg)}
+h1{margin:0 0 20px;font-size:clamp(2rem,4.3vw,3.45rem);line-height:1.06;letter-spacing:-.015em}
+h1 .accent{color:var(--copper)}
+h2{margin:0 0 14px;font-size:clamp(1.28rem,2vw,1.62rem);line-height:1.18;letter-spacing:-.005em}
+p{margin:0 0 12px;color:var(--fg-2)}
+.lede{font-size:1.12rem;color:var(--fg-2);max-width:34rem}
+.small{font-size:.86rem;color:var(--muted)}
+
+/* hero */
+.step.hero{min-height:auto;padding-block:20vh 34vh}
+.hero .panel{width:min(37rem,100%);padding:0;background:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin:26px 0 22px;padding-top:18px;border-top:1px solid var(--line-strong)}
+.stats div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.stats b{font-family:var(--display);font-weight:600;font-size:1.32rem;letter-spacing:-.01em;color:var(--fg);font-variant-numeric:tabular-nums;white-space:nowrap}
+.stats span{font-size:.78rem;line-height:1.35;color:var(--muted)}
+.hints{display:flex;flex-wrap:wrap;gap:10px 18px;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hints span{display:inline-flex;align-items:center;gap:8px}
+.hints span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--air)}
+.hints .only-touch{display:none}
+@media (hover:none) and (pointer:coarse){.hints .only-mouse{display:none}.hints .only-touch{display:inline-flex}}
+
+/* facts */
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;margin:18px 0 4px;background:var(--line);border:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px;min-width:0;padding:11px 14px 12px;background:var(--panel-solid)}
+.fact b{font-family:var(--mono);font-weight:500;font-size:1.08rem;color:var(--fg);font-variant-numeric:tabular-nums}
+.fact span{font-size:.78rem;line-height:1.35;color:var(--muted)}
+
+/* tables */
+.table-wrap{overflow-x:auto;margin:14px 0 4px}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:8px 0;text-align:left;vertical-align:top;border-top:1px solid var(--line)}
+tr:last-child th,tr:last-child td{border-bottom:1px solid var(--line)}
+th{width:42%;padding-right:14px;font-weight:500;color:var(--muted)}
+td{font-family:var(--mono);font-size:.8rem;line-height:1.5;color:var(--fg);font-variant-numeric:tabular-nums}
+.reviews th{width:30%}
+.reviews td{font-family:var(--body);font-size:.86rem;color:var(--fg-2)}
+
+/* ordered layers */
+.layers{list-style:none;counter-reset:l;margin:16px 0 4px;padding:0}
+.layers li{counter-increment:l;display:grid;grid-template-columns:2.2rem 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:.93rem;color:var(--fg-2)}
+.layers li::before{content:counter(l,decimal-leading-zero);font-family:var(--mono);font-size:.75rem;color:var(--copper);padding-top:3px}
+
+/* bandwidth bars */
+.bars{display:grid;gap:12px;margin:16px 0 14px}
+.bar-row{display:grid;grid-template-columns:minmax(0,6.6rem) minmax(0,1fr);gap:12px;align-items:center}
+.bar-name{font-size:.82rem;line-height:1.3;color:var(--fg-2)}
+.bar-name small{display:block;font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.bar-track{position:relative;height:26px;background:var(--line)}
+.bar-fill{height:100%;background:var(--muted)}
+.bar-fill.hot{background:var(--copper)}
+.bar-val{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:.74rem;color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* price ledger */
+.ledger{list-style:none;margin:16px 0 8px;padding:0}
+.ledger li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line)}
+.ledger li:last-child{border-bottom:1px solid var(--line)}
+.ledger .what{font-size:.9rem;line-height:1.4;color:var(--fg-2)}
+.ledger .when{display:block;margin-bottom:2px;font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ledger .amt{font-family:var(--mono);font-size:1rem;color:var(--fg);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* verdict */
+.pc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:16px 0 14px}
+.pc h3{margin:0 0 8px;font-family:var(--mono);font-size:.7rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.pc ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.pc li{position:relative;padding-left:18px;font-size:.88rem;line-height:1.45;color:var(--fg-2)}
+.pc li::before{position:absolute;left:0;top:0;font-family:var(--mono);font-weight:500}
+.pc .plus li::before{content:"+";color:var(--copper)}
+.pc .minus li::before{content:"−";color:var(--muted)}
+
+/* explorer */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 16px}
+.chip{font:inherit;font-size:.8rem;line-height:1.2;padding:7px 12px;border:1px solid var(--line-strong);border-radius:999px;background:transparent;color:var(--fg);cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.chip:hover{border-color:var(--copper)}
+.chip[aria-pressed="true"]{background:var(--copper);border-color:var(--copper);color:var(--on-accent)}
+.ctrl{display:grid;gap:6px;margin-bottom:14px}
+.ctrl label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ctrl output{color:var(--fg);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--copper)}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font:inherit;font-size:.82rem;padding:8px 14px;border:1px solid var(--line-strong);border-radius:3px;background:var(--panel-solid);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--copper)}
+.chip:focus-visible,.btn:focus-visible,input:focus-visible,a:focus-visible,canvas:focus-visible{outline:2px solid var(--air);outline-offset:2px}
+
+/* colophon */
+.colophon{position:relative;z-index:1;padding:8vh clamp(16px,5vw,76px) 10vh}
+.colophon .panel{width:min(44rem,100%)}
+.sources{margin:12px 0 18px;padding-left:1.4rem;font-size:.86rem;color:var(--fg-2)}
+.sources li{margin-bottom:6px;padding-left:4px}
+.sources li::marker{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+
+@media (max-width:899px){
+  body{font-size:1rem}
+  .step{min-height:100vh;align-items:flex-end;padding-block:58vh 5vh}
+  .step.hero{padding-block:60vh 10vh}
+  .panel{width:100%;padding:22px 18px 18px}
+  .hero .panel{padding:0}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .hud .brand{display:none}
+  .hud .part{margin-left:0;text-align:left}
+}
+@media (max-width:420px){
+  .pc{grid-template-columns:1fr}
+  .callout .tag{font-size:.64rem}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .callout,.chip{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <canvas id="gl" role="img" aria-label="ROG Astral RTX 5090 video kartasining aylantiriladigan 3D sxematik modeli"></canvas>
+  <div class="callout" id="callout" aria-hidden="true"><span class="lead"></span><span class="dot"></span><span class="tag"><b id="co-name"></b><span id="co-sub"></span></span></div>
+  <div class="loader" id="loader" role="status" aria-live="polite"><span>3D model yuklanmoqda</span><span class="loader-bar"><span id="loader-fill"></span></span><span id="loader-pct">0%</span></div>
+  <p class="stage-note" id="stage-note" hidden></p>
+</div>
+
+<header class="hud" aria-hidden="true">
+  <span class="brand">ROG Astral <i>RTX 5090</i> · 3D anatomiya</span>
+  <span class="part" id="hud-part">Kirish</span>
+  <span class="progress"><span id="hud-bar"></span></span>
+</header>
+
+<main>
+  <section class="step hero" data-step="hero" data-label="Kirish">
+    <div class="panel">
+      <p class="eyebrow">Interaktiv maqola · 3D anatomiya</p>
+      <h1>ASUS ROG Astral GeForce <span class="accent">RTX 5090</span></h1>
+      <p class="lede">ROGʻning birinchi toʻrt ventilyatorli video kartasi. U 3 kilogrammdan ogʻir, 600 vattgacha quvvat oladi va ichida NVIDIAʼning eng katta oʻyin protsessori ishlaydi. Sahifani pastga aylantiring: har bir boʻlimda kartaning bitta qismi 3D sahnada ajralib chiqadi va uning vazifasi tushuntiriladi.</p>
+      <div class="stats">
+        <div><b>21 760</b><span>CUDA yadro</span></div>
+        <div><b>32 GB</b><span>GDDR7 xotira</span></div>
+        <div><b>2610 MHz</b><span>OC rejimdagi chastota</span></div>
+        <div><b>600 W</b><span>quvvat chegarasi</span></div>
+      </div>
+      <div class="hints">
+        <span>Pastga aylantiring</span>
+        <span class="only-mouse">Modelni sichqoncha bilan suring</span>
+        <span class="only-touch">Modelni yon tomonga suring</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="step" data-step="overview" data-label="Umumiy koʻrinish" id="umumiy">
+    <article class="panel">
+      <p class="eyebrow">Umumiy koʻrinish</p>
+      <h2>Protsessor bir xil, karta boshqacha</h2>
+      <p>RTX 5090 NVIDIAʼning Blackwell arxitekturasidagi eng kuchli oʻyin video kartasi. NVIDIAʼning oʻz Founders Edition versiyasi ikki slotli va ixcham. ASUS esa xuddi shu GB202 protsessorni oʻzining eng yuqori ROG Astral seriyasiga joylab, sovutish, quvvat zanjiri va korpusni butunlay qayta loyihalagan.</p>
+      <p>Natijada karta 3,8 slot egallaydi va 357,6 mm uzunlikka ega. Sotib olishdan oldin korpusingizda shuncha joy borligini oʻlchab koʻring.</p>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><th scope="row">Grafik protsessor</th><td>NVIDIA GB202 (Blackwell)</td></tr>
+            <tr><th scope="row">CUDA yadrolari</th><td>21 760</td></tr>
+            <tr><th scope="row">Boost chastota</th><td>2610 MHz (OC rejim)<br>2580 MHz (standart)</td></tr>
+            <tr><th scope="row">Xotira</th><td>32 GB GDDR7, 512-bit, 28 Gbit/s</td></tr>
+            <tr><th scope="row">Oʻtkazuvchanlik</th><td>1792 GB/s</td></tr>
+            <tr><th scope="row">AI unumdorligi</th><td>3352 TOPS</td></tr>
+            <tr><th scope="row">Shina</th><td>PCI Express 5.0 x16</td></tr>
+            <tr><th scope="row">Chiqishlar</th><td>3 × DisplayPort 2.1b<br>2 × HDMI 2.1b</td></tr>
+            <tr><th scope="row">Quvvat</th><td>1 × 16-pin, blok kamida 1000 W</td></tr>
+            <tr><th scope="row">Oʻlchamlari</th><td>357,6 × 149,3 × 76 mm, 3,8 slot</td></tr>
+            <tr><th scope="row">Ogʻirligi</th><td>3 kg dan ortiq</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <section class="step" data-step="layers" data-label="Ichki tuzilish" id="qatlamlar">
+    <article class="panel">
+      <p class="eyebrow">Ichki tuzilish</p>
+      <h2>Karta qatlam-qatlam</h2>
+      <p>Sahnada karta qismlarga ajraldi. Oldinda ventilyatorlar va metall qobiq turibdi. Ulardan keyin radiator qovurgʻalari, issiqlik quvurlari va bugʻ kamerasi keladi. Undan keyin elektronika platasi, eng orqada esa orqa plastina va toʻrtinchi ventilyator joylashgan.</p>
+      <ol class="layers">
+        <li>Uchta old ventilyator va quyma metall qobiq</li>
+        <li>Alyuminiy radiator qovurgʻalari</li>
+        <li>Sakkizta issiqlik quvuri va mis bugʻ kamerasi</li>
+        <li>Plata: protsessor, xotira, quvvat zanjiri, portlar</li>
+        <li>Orqa plastina va toʻrtinchi ventilyator</li>
+      </ol>
+      <p class="small">Keyingi boʻlimlar issiqlik paydo boʻladigan joydan boshlanadi: avval protsessor, keyin uni sovutadigan qismlar.</p>
+    </article>
+  </section>
+
+  <section class="step" data-step="gpu" data-label="GB202 protsessor" data-sub="92,2 mlrd tranzistor · ~750 mm²" id="gpu">
+    <article class="panel">
+      <p class="eyebrow">Plata · protsessor</p>
+      <h2>GB202: kartaning yuragi</h2>
+      <p>Barcha hisob-kitoblarni NVIDIA GB202 kristali bajaradi. Unda 92,2 milliard tranzistor bor, maydoni taxminan 750 mm², TSMC 4N texnologik jarayonida ishlab chiqarilgan. RTX 5090ʼda 170 ta oqimli multiprotsessor (SM) faol: bu 21 760 CUDA yadro, 680 ta beshinchi avlod Tensor yadro va 170 ta toʻrtinchi avlod RT yadro demakdir.</p>
+      <p>Tensor yadrolar DLSS 4 va Multi Frame Generation kabi neyron tarmoq vazifalarini, RT yadrolar esa nur kuzatishni (ray tracing) tezlashtiradi. ASUS chastotani zavodning oʻzida oshirgan: OC rejimida 2610 MHz, bu NVIDIA etalonidagi 2407 MHz dan 203 MHz yuqori.</p>
+      <p>Bunday katta kristall notekis bosimdan yorilmasligi uchun GPU Guard texnologiyasi uning toʻrt burchagini maxsus yelim bilan mahkamlaydi. Plata orqasidagi metall kronshteyn esa sovutgich bosimini teng taqsimlaydi.</p>
+      <div class="facts">
+        <div class="fact"><b>92,2 mlrd</b><span>tranzistor</span></div>
+        <div class="fact"><b>~750 mm²</b><span>kristall maydoni</span></div>
+        <div class="fact"><b>680</b><span>Tensor yadro, 5-avlod</span></div>
+        <div class="fact"><b>170</b><span>RT yadro, 4-avlod</span></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="step" data-step="pad" data-label="Termal qoplama" data-sub="phase-change · eriydigan qatlam" id="termal">
+    <article class="panel">
+      <p class="eyebrow">Issiqlik interfeysi</p>
+      <h2>Eriydigan termal qoplama</h2>
+      <p>Kristall bilan sovutgich orasiga fazasi oʻzgaruvchan (phase-change) termal qoplama qoʻyilgan. Sovuq holatda u yupqa qattiq plastinaga oʻxshaydi. Karta qiziganda qoplama eriydi va kristall bilan metall orasidagi mikroskopik notekisliklarni toʻldiradi.</p>
+      <p>Havo qolgan har bir boʻshliq issiqlik oʻtishiga xalaqit beradi, shuning uchun kontakt qanchalik zich boʻlsa, protsessor shunchalik sovuq ishlaydi. ASUS bu yechim ogʻir yuklamada ham issiqlikni barqaror oʻtkazishini va karta uzoq xizmat qilishiga yordam berishini taʼkidlaydi.</p>
+      <p class="small">Sahnada kristall, qoplama va bugʻ kamerasi bir-biridan ajratib koʻrsatilgan. Qoplama 3D modelda yoʻq, u sxematik qoʻshilgan.</p>
+    </article>
+  </section>
+
+  <section class="step" data-step="mem" data-label="GDDR7 xotira" data-sub="16 × 2 GB · 512-bit" id="xotira">
+    <article class="panel">
+      <p class="eyebrow">Plata · xotira</p>
+      <h2>32 GB GDDR7, 16 ta mikrosxema</h2>
+      <p>Protsessor atrofida 16 ta GDDR7 xotira mikrosxemasi joylashgan, har biri 2 GB. Har bir mikrosxema 32 bitli kanal orqali ulanadi va ular birgalikda 512 bitli shina hosil qiladi. 28 Gbit/s tezlikda bu sekundiga 1792 GB oʻtkazuvchanlik beradi.</p>
+      <div class="bars" role="img" aria-label="Xotira oʻtkazuvchanligi: RTX 4090 1008 GB/s, RTX 5090 1792 GB/s">
+        <div class="bar-row">
+          <span class="bar-name">RTX 4090<small>GDDR6X, 384-bit</small></span>
+          <span class="bar-track"><span class="bar-fill" style="width:56.25%"></span><span class="bar-val">1008 GB/s</span></span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-name">RTX 5090<small>GDDR7, 512-bit</small></span>
+          <span class="bar-track"><span class="bar-fill hot" style="width:100%"></span><span class="bar-val">1792 GB/s</span></span>
+        </div>
+      </div>
+      <p>Bu RTX 4090ʼga nisbatan taxminan 78% koʻp. Katta hajm 4K va 8K oʻyinlarda, ogʻir 3D sahnalarda va kompyuterning oʻzida ishlaydigan AI modellarida foydali. Xotira harorati GPU Tweak III dasturidagi Thermal Map orqali real vaqtda kuzatiladi.</p>
+    </article>
+  </section>
+
+  <section class="step" data-step="vrm" data-label="Quvvat zanjiri (VRM)" data-sub="24 + 7 faza · 80 A MOSFET" id="vrm">
+    <article class="panel">
+      <p class="eyebrow">Plata · quvvat</p>
+      <h2>24 + 7 faza, 80 amperlik MOSFETlar</h2>
+      <p>Quvvat bloki 12 volt beradi, protsessorga esa taxminan bir voltli, lekin juda katta tok kerak. Bu aylantirishni kuchlanish regulyatori (VRM) bajaradi. ASUS maʼlumotiga koʻra GPU uchun 24 fazali, xotira uchun alohida 7 fazali regulyator oʻrnatilgan.</p>
+      <p>Har bir faza drossel, MOSFET tranzistor va kondensatorlardan iborat. Fazalar koʻp boʻlsa, yuklama ular orasida taqsimlanadi va har bir element kamroq qiziydi. 80 amperlik MOSFETlar standart dizaynga nisbatan 35% koʻproq zaxira beradi, bu overklok paytida barqarorlikni oshiradi.</p>
+      <div class="facts">
+        <div class="fact"><b>24</b><span>faza GPU uchun</span></div>
+        <div class="fact"><b>7</b><span>faza xotira uchun</span></div>
+        <div class="fact"><b>80 A</b><span>har bir MOSFET</span></div>
+        <div class="fact"><b>+35%</b><span>quvvat zaxirasi</span></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="step" data-step="power" data-label="16-pin ulagich" data-sub="600 W · 6 ta kuzatiladigan kontakt" id="ulagich">
+    <article class="panel">
+      <p class="eyebrow">Plata · ulagich</p>
+      <h2>16-pin ulagich va Power Detector+</h2>
+      <p>Kartaning barcha quvvati bitta 16-pinli (12V-2×6) ulagich orqali keladi. Bu ulagich standarti uchun ruxsat etilgan chegara 600 W, Astral ham shu chegarada ishlaydi. Ulagich oxirigacha kiritilmasa, tok kontaktlar orasida notekis taqsimlanadi va ular qizib ketishi mumkin.</p>
+      <p>Power Detector+ funksiyasi oltita 12 voltli kontaktning har birini alohida kuzatadi. Biror kontaktda anomaliya sezilsa, GPU Tweak III kabelni qayta ulash kerakligini darhol aytadi. Sahnadagi oltita miltillovchi nuqta shu kontaktlarni bildiradi. Ulagich modelda yoʻq, u plataning boʻsh burchagiga sxematik tarzda qoʻyilgan.</p>
+      <p>Mileage funksiyasi esa karta qaysi quvvat darajalarida qancha vaqt ishlaganini yozib boradi.</p>
+      <div class="facts">
+        <div class="fact"><b>600 W</b><span>quvvat chegarasi</span></div>
+        <div class="fact"><b>1000 W</b><span>tavsiya etilgan blok</span></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="step" data-step="cooling" data-label="Bugʻ kamerasi" data-sub="frezalangan ariqchalar · 8 quvur" id="bug-kamerasi">
+    <article class="panel">
+      <p class="eyebrow">Sovutish · 1-bosqich</p>
+      <h2>Bugʻ kamerasi va 8 ta issiqlik quvuri</h2>
+      <p>Kristalldan chiqqan issiqlikni birinchi boʻlib mis bugʻ kamerasi qabul qiladi. Uning ichida ozgina suyuqlik bor. Issiq joyda suyuqlik bugʻlanadi, sovuqroq joyda yana suyuqlikka aylanadi va shu tariqa issiqlikni butun plastina boʻylab tez tarqatadi.</p>
+      <p>ASUSʼning patentlangan yechimida kamera yuzasida frezalangan ariqchalar bor. Sakkizta issiqlik quvuri shu ariqchalarga yassilanmasdan oʻrnashadi, natijada kontakt maydoni kattalashadi. Ishlab chiqaruvchi maʼlumotiga koʻra bu issiqlik samaradorligini 10% dan koʻproq oshiradi. MaxContact texnologiyasi esa issiqlik tarqatgich yuzasini yana 5% kengaytiradi.</p>
+      <div class="facts">
+        <div class="fact"><b>8</b><span>issiqlik quvuri</span></div>
+        <div class="fact"><b>&gt;10%</b><span>issiqlik samaradorligi</span></div>
+      </div>
+      <p class="small">Bugʻ kamerasi va quvurlar 3D modelda yoʻq, shuning uchun sahnada ular sxematik koʻrinishda (mis rangda) qoʻshilgan.</p>
+    </article>
+  </section>
+
+  <section class="step" data-step="fins" data-label="Radiator" data-sub="zich alyuminiy qovurgʻalar" id="radiator">
+    <article class="panel">
+      <p class="eyebrow">Sovutish · 2-bosqich</p>
+      <h2>Zich joylashgan radiator qovurgʻalari</h2>
+      <p>Issiqlik quvurlari issiqlikni koʻplab yupqa alyuminiy qovurgʻalarga olib boradi. Issiqlikni havoga aynan shu qovurgʻalar beradi: ularning umumiy yuzasi qanchalik katta boʻlsa, sovutish shunchalik samarali.</p>
+      <p>Qovurgʻalar zichroq joylashsa, yuza kattalashadi, lekin havoni ular orasidan oʻtkazish qiyinlashadi. Astralda toʻrtinchi ventilyator havo bosimini oshirgani uchun muhandislar qovurgʻalarni zichroq joylashtira olgan.</p>
+    </article>
+  </section>
+
+  <section class="step" data-step="fans" data-label="Quad-Fan" data-sub="3 + 1 Axial-tech ventilyator" id="ventilyatorlar">
+    <article class="panel">
+      <p class="eyebrow">Sovutish · 3-bosqich</p>
+      <h2>Quad-Fan: toʻrtta ventilyator</h2>
+      <p>Old tomonda uchta Axial-tech ventilyator bor, toʻrtinchisi esa orqa plastinaga oʻrnatilgan. Bu ROGʻning birinchi toʻrt ventilyatorli kartasi. Ventilyatorlar birgalikda radiator orqali vertikal havo kanali hosil qiladi.</p>
+      <p>ASUS maʼlumotiga koʻra bu tuzilish havo oqimi va bosimini 20% gacha oshiradi. Natijada GPU harorati va issiq nuqtalar kamayadi, karta esa yuqori chastotada uzoqroq ishlay oladi. Sahnadagi zarrachalar havo yoʻlini koʻrsatadi.</p>
+      <div class="facts">
+        <div class="fact"><b>4</b><span>ventilyator: 3 old, 1 orqa</span></div>
+        <div class="fact"><b>+20%</b><span>havo oqimi va bosimi</span></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="step" data-step="rearfan" data-label="Orqa ventilyator" data-sub="radiator orqali oʻtadigan oqim" id="orqa-ventilyator">
+    <article class="panel">
+      <p class="eyebrow">Orqa tomon</p>
+      <h2>Toʻrtinchi ventilyator</h2>
+      <p>Plata kartaning butun uzunligi boʻylab davom etmaydi. U tugagan joyda radiator ochiq qoladi va orqa plastinadagi ventilyator havoni shu qism orqali oʻtkazadi. Shu tariqa old ventilyatorlar haydagan havo radiatordan toʻsiqsiz chiqib ketadi.</p>
+      <p>Odatiy minora korpusda bu havo yuqoriga, protsessor sovutgichi tomon yoʻnaladi. Shuning uchun Astral oʻrnatilgan tizimda korpusning yuqori va orqa chiqarish ventilyatorlari ayniqsa foydali.</p>
+    </article>
+  </section>
+
+  <section class="step" data-step="shell" data-label="Metall korpus" data-sub="bilvosita Aura ARGB yoritish" id="korpus">
+    <article class="panel">
+      <p class="eyebrow">Korpus</p>
+      <h2>Quyma metall ramka va orqa plastina</h2>
+      <p>Kartaning ramkasi, old qobigʻi va orqa plastinasi quyma metalldan (die-cast) yasalgan. Ular platani har tomondan mahkam ushlab turadi, shuning uchun 3 kilogrammdan ogʻir sovutgich ostida plata egilmaydi. I/O kronshteyni 304 markali zanglamaydigan poʻlatdan tayyorlangan, toʻplamda esa kartani pastdan ushlab turadigan tayanch bor.</p>
+      <p>Yuqori qirrada bilvosita Aura ARGB yoritish chizigʻi joylashgan. Uning rangi va effektlarini Aura Sync orqali boshqa ASUS qurilmalari bilan sinxronlashtirish mumkin.</p>
+    </article>
+  </section>
+
+  <section class="step" data-step="io" data-label="Chiqish portlari" data-sub="3 × DP 2.1b · 2 × HDMI 2.1b" id="portlar">
+    <article class="panel">
+      <p class="eyebrow">Ulanish</p>
+      <h2>Beshta chiqish porti</h2>
+      <p>Kronshteynda uchta DisplayPort 2.1b va ikkita HDMI 2.1b porti bor. NVIDIAʼning Founders Edition versiyasida HDMI bitta, shuning uchun Astralga televizor va HDMI monitorni bir vaqtda ulash qulayroq.</p>
+      <p>Bir vaqtning oʻzida toʻrttagacha monitor ishlaydi, maksimal raqamli ruxsat 7680 × 4320 (8K). HDCP 2.3 qoʻllab-quvvatlanadi.</p>
+      <div class="facts">
+        <div class="fact"><b>4</b><span>monitorgacha bir vaqtda</span></div>
+        <div class="fact"><b>7680 × 4320</b><span>maksimal ruxsat</span></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="step" data-step="pcb" data-label="Plata va BIOS" data-sub="konformal himoya qoplamasi" id="plata">
+    <article class="panel">
+      <p class="eyebrow">Plata va dasturlar</p>
+      <h2>Himoyalangan plata, ikki BIOS</h2>
+      <p>Plata himoya (konformal) qoplama bilan qoplangan: u namlik, chang va mayda zarrachalar sababli qisqa tutashuv xavfini kamaytiradi. Barcha kavsharlash ishlari Auto-Extreme avtomatlashtirilgan jarayonida bir oʻtishda bajariladi.</p>
+      <p>Plataning yuqori qirrasida ikki BIOS kaliti bor. Performance rejimida ventilyatorlar kartani doimo sovuq ushlab turadi. Quiet rejimida quvvat chegarasi va chastotalar oʻzgarmaydi, faqat ventilyatorlar oʻrtacha haroratda sekinroq aylanadi. ComputerBase xabariga koʻra, ASUS keyinroq chiqargan yangilangan Quiet BIOS kartani 6,5 dB jimroq qilgan.</p>
+      <p>FanConnect II ning ikkita PWM ulagichiga korpus ventilyatorlarini ulab, ularni protsessor va GPU haroratiga qarab boshqarish mumkin. GPU Tweak III dasturida OC va Silent rejimlari, OC Scanner, kuchlanish-chastota (V-F) sozlagichi, Thermal Map va Power Detector+ bor.</p>
+    </article>
+  </section>
+
+  <section class="step" data-step="tests" data-label="Sinovlarda" id="sinovlar">
+    <article class="panel">
+      <p class="eyebrow">Sinovlarda</p>
+      <h2>Unumdorlik, harorat va shovqin</h2>
+      <p>Unumdorlikning asosiy qismi GB202 protsessoridan keladi, shuning uchun Astral NVIDIAʼning oʻz versiyasidan bir necha foizgagina tez. Uning asosiy ustunligi past harorat va yuqori chastotani uzoq ushlab tura olishida.</p>
+      <div class="table-wrap">
+        <table class="reviews">
+          <tbody>
+            <tr><th scope="row">NoobFeed</th><td>Ayrim sinovlarda Founders Editionʼdan 8% tez, Cyberpunk 2077 RT rejimida 4% sekin. RTX 4090ʼdan 47% oldinda. GPU va xotira harorati 67 °C dan oshmagan, ventilyatorlar 1700 RPM dan past aylangan.</td></tr>
+            <tr><th scope="row">PC Games Hardware<br><span class="small">BTF versiya</span></th><td>Taxminan 600 W isteʼmolda GPU harorati 68 °C, shovqin 2,5 sone. Drosselning chiyillashi (coil whine) qayd etilgan.</td></tr>
+            <tr><th scope="row">Guru3D</th><td>GPU harorati 65–73 °C, korpusdagi havo oqimi va tanlangan BIOS rejimiga qarab.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small">Har bir nashr oʻz sinov tizimidan foydalangan, shuning uchun raqamlarni bir-biri bilan toʻgʻridan-toʻgʻri solishtirib boʻlmaydi.</p>
+    </article>
+  </section>
+
+  <section class="step" data-step="price" data-label="Narxi" id="narx">
+    <article class="panel">
+      <p class="eyebrow">Narxi</p>
+      <h2>Qancha turadi?</h2>
+      <p>Astral har doim eng qimmat RTX 5090ʼlardan biri boʻlgan. 2025–2026 yillarda talab va xotira narxlarining oshishi tufayli narx bir necha marta koʻtarildi.</p>
+      <ul class="ledger">
+        <li><span class="what"><span class="when">2025, yanvar</span>NVIDIA Founders Edition tavsiya narxi</span><span class="amt">$1 999</span></li>
+        <li><span class="what"><span class="when">2025, chiqish paytida</span>ROG Astral RTX 5090 OC, AQSh narxi</span><span class="amt">$2 799,99</span></li>
+        <li><span class="what"><span class="when">2025, keyinroq</span>Yangilangan narx, Founders Editionʼdan 40% qimmat</span><span class="amt">$3 359,99</span></li>
+        <li><span class="what"><span class="when">2026, iyul</span>RTX 5090 kartalarining odatiy bozor narxi (Wccftech bahosi)</span><span class="amt">≈ $4 000</span></li>
+        <li><span class="what"><span class="when">2026, iyul</span>ROG Astral RTX 5090 Edition 20, AMOLED ekranli maxsus versiya</span><span class="amt">$5 499</span></li>
+      </ul>
+      <p>Oilada boshqa versiyalar ham bor: 360 mm suyuq sovutgichli va 2,5 slotli Astral LC, ulagichlari orqa tomonga chiqarilgan BTF, oq rangli White, oltin bezakli Dhahab va 800 W gacha quvvat oladigan Edition 20.</p>
+      <p class="small">Narxlar mamlakat va doʻkonga qarab keskin farq qiladi. Sotib olishdan oldin mahalliy doʻkonlardagi joriy narxni tekshiring.</p>
+    </article>
+  </section>
+
+  <section class="step" data-step="verdict" data-label="Xulosa" id="xulosa">
+    <article class="panel">
+      <p class="eyebrow">Xulosa</p>
+      <h2>Kimga kerak?</h2>
+      <div class="pc">
+        <div class="plus">
+          <h3>Kuchli tomonlari</h3>
+          <ul>
+            <li>Eng yuqori zavod chastotalaridan biri: 2610 MHz</li>
+            <li>Past harorat: sinovlarda taxminan 65–68 °C</li>
+            <li>Har bir quvvat kontaktini kuzatadigan Power Detector+</li>
+            <li>Toʻliq metall, mustahkam konstruksiya</li>
+            <li>Ikki BIOS, FanConnect II va Thermal Map</li>
+          </ul>
+        </div>
+        <div class="minus">
+          <h3>Zaif tomonlari</h3>
+          <ul>
+            <li>Founders Editionʼdan 40% va undan koʻp qimmat</li>
+            <li>3,8 slot va 357,6 mm: katta korpus kerak</li>
+            <li>3 kg dan ogʻir, tayanch bilan oʻrnatish lozim</li>
+            <li>Taxminan 600 W isteʼmol, kamida 1000 W blok</li>
+            <li>Ayrim sinovlarda shovqin va drossel chiyillashi</li>
+          </ul>
+        </div>
+      </div>
+      <p>Agar korpusingizga sigʻsa va byudjet cheklanmagan boʻlsa, Astral havo bilan sovutiladigan eng puxta RTX 5090ʼlardan biri. Unumdorlikdagi farq kichik, shuning uchun qoʻshimcha pul asosan sovutish, jimlik va qurilish sifati uchun toʻlanadi. Narx muhim boʻlsa, oddiyroq RTX 5090 modellari deyarli xuddi shunday tez ishlaydi.</p>
+    </article>
+  </section>
+
+  <section class="step" data-step="explore" data-label="Erkin koʻrish" id="erkin">
+    <article class="panel">
+      <p class="eyebrow">Oʻzingiz koʻring</p>
+      <h2>Erkin koʻrish rejimi</h2>
+      <p>Qismni tanlang yoki modeldagi qismga bosing. Slayder bilan qismlarni qanchalik ajratishni oʻzgartiring.</p>
+      <div class="chips" id="chips">
+        <button class="chip" type="button" id="chip-fans" data-part="fans" aria-pressed="false">Old ventilyatorlar</button>
+        <button class="chip" type="button" id="chip-rearfan" data-part="rearfan" aria-pressed="false">Orqa ventilyator</button>
+        <button class="chip" type="button" id="chip-shroud" data-part="shroud" aria-pressed="false">Qobiq</button>
+        <button class="chip" type="button" id="chip-light" data-part="light" aria-pressed="false">ARGB chiziq</button>
+        <button class="chip" type="button" id="chip-fins" data-part="fins" aria-pressed="false">Radiator</button>
+        <button class="chip" type="button" id="chip-pipes" data-part="pipes" aria-pressed="false">Issiqlik quvurlari</button>
+        <button class="chip" type="button" id="chip-vc" data-part="vc" aria-pressed="false">Bugʻ kamerasi</button>
+        <button class="chip" type="button" id="chip-pad" data-part="pad" aria-pressed="false">Termal qoplama</button>
+        <button class="chip" type="button" id="chip-gpu" data-part="gpu" aria-pressed="false">GB202</button>
+        <button class="chip" type="button" id="chip-mem" data-part="mem" aria-pressed="false">Xotira</button>
+        <button class="chip" type="button" id="chip-vrm" data-part="vrm" aria-pressed="false">VRM</button>
+        <button class="chip" type="button" id="chip-power" data-part="power" aria-pressed="false">16-pin</button>
+        <button class="chip" type="button" id="chip-pcb" data-part="pcb" aria-pressed="false">Plata</button>
+        <button class="chip" type="button" id="chip-io" data-part="io" aria-pressed="false">Portlar</button>
+        <button class="chip" type="button" id="chip-gbrk" data-part="gbrk" aria-pressed="false">GPU kronshteyni</button>
+        <button class="chip" type="button" id="chip-backplate" data-part="backplate" aria-pressed="false">Orqa plastina</button>
+      </div>
+      <div class="ctrl">
+        <label for="explode">Ajratish darajasi <output id="explode-out" for="explode">100%</output></label>
+        <input type="range" id="explode" min="0" max="100" value="100">
+      </div>
+      <div class="btns">
+        <button class="btn" type="button" id="btn-assemble">Yigʻish</button>
+        <button class="btn" type="button" id="btn-explode">Toʻliq ajratish</button>
+        <button class="btn" type="button" id="btn-clear">Tanlovni tozalash</button>
+      </div>
+    </article>
+  </section>
+</main>
+
+<footer class="colophon">
+  <div class="panel">
+    <p class="eyebrow">Manbalar</p>
+    <h2>Maʼlumotlar qayerdan olindi</h2>
+    <p class="small">Maʼlumotlar 2026-yil 7-oktyabr holatiga koʻra.</p>
+    <ol class="sources">
+      <li><a href="https://rog.asus.com/graphics-cards/graphics-cards/rog-astral/rog-astral-rtx5090-o32g-gaming/" target="_blank" rel="noopener">ASUS ROG: ROG Astral GeForce RTX 5090 OC, xususiyatlar sahifasi</a></li>
+      <li><a href="https://rog.asus.com/tw/graphics-cards/graphics-cards/rog-astral/rog-astral-rtx5090-o32g-gaming/spec/" target="_blank" rel="noopener">ASUS ROG: texnik xususiyatlar</a></li>
+      <li><a href="https://techpowerup.com/forums/goto/post?id=5444892" target="_blank" rel="noopener">TechPowerUp: ASUS ROG Astral RTX 5090 va 5080 haqida (VRM, issiqlik quvurlari, oʻlchamlar)</a></li>
+      <li><a href="https://www.kitguru.net/components/graphic-cards/dominic-moass/nvidia-rtx-5090-review-ray-tracing-dlss-4-and-raw-power-explored/" target="_blank" rel="noopener">KitGuru: Nvidia RTX 5090 sharhi</a></li>
+      <li><a href="https://glslhacker.geeks3d.com/?p=10808" target="_blank" rel="noopener">Geeks3D: GeForce RTX 5090 toʻliq xususiyatlari</a></li>
+      <li><a href="https://www.noobfeed.com/hardware/asus-rog-astral-rtx-5090-oc-edition-review-4k-gaming" target="_blank" rel="noopener">NoobFeed: ASUS ROG Astral RTX 5090 OC sharhi</a></li>
+      <li><a href="https://www.guru3d.com/review/review-asus-rog-geforce-rtx-5090-astral-oc-gaming/page-33/" target="_blank" rel="noopener">Guru3D: ROG Astral RTX 5090 OC sharhi, xulosa</a></li>
+      <li><a href="https://www.pcgameshardware.de/Geforce-RTX-5090-Grafikkarte-281029/Tests/Asus-ROG-Astral-RTX-5090-BTF-Preis-Leistung-Temperatur-Lautstaerke-1481760/2/" target="_blank" rel="noopener">PC Games Hardware: ROG Astral RTX 5090 BTF testi</a></li>
+      <li><a href="https://rog-forum.asus.com/t5/push-the-limits/the-rog-astral-rtx-5090-what-comes-after-the-summit/ba-p/1085817" target="_blank" rel="noopener">ROG Forum: ROG Astral RTX 5090 (quvvat chegarasi, Power Detector+)</a></li>
+      <li><a href="https://www.computerbase.de/news/geforce-rtx-5090/" target="_blank" rel="noopener">ComputerBase: GeForce RTX 5090 yangiliklari (Quiet BIOS, Edition 20)</a></li>
+      <li><a href="https://wccftech.com/rog-astral-rtx-5090-edition-20-turns-out-to-be-the-most-expensive-rtx-5090-from-asus-at-5499/amp/" target="_blank" rel="noopener">Wccftech: ROG Astral RTX 5090 Edition 20 narxi</a></li>
+      <li><a href="https://guru3d.com/story/asus-rog-astral-geforce-rtx-5090-edition-20-listed-at-ahead-of-launch/" target="_blank" rel="noopener">Guru3D: Edition 20 va AMOLED ekran</a></li>
+      <li><a href="https://rog.asus.com/mx/graphics-cards/graphics-cards/rog-astral/rog-astral-lc-rtx5090-o32g-gaming/spec" target="_blank" rel="noopener">ASUS ROG: Astral LC texnik xususiyatlari</a></li>
+      <li><a href="https://sketchfab.com/3d-models/rtx-5090-rog-astral-7d6fc3376ecc4fe095f8fa0b7605766d" target="_blank" rel="noopener">Sketchfab: “Rtx 5090 ROG ASTRAL” 3D modeli (Branz, CC BY 4.0)</a></li>
+    </ol>
+    <p class="eyebrow">3D model</p>
+    <p class="small"><a href="https://sketchfab.com/3d-models/rtx-5090-rog-astral-7d6fc3376ecc4fe095f8fa0b7605766d" target="_blank" rel="noopener">“Rtx 5090 ROG ASTRAL”</a>, muallif <a href="https://sketchfab.com/BrDvnci" target="_blank" rel="noopener">Branz</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> litsenziyasi asosida. Oʻzgartirishlar: model veb uchun soddalashtirildi (taxminan 3,1 mln uchburchakdan 290 mingtaga), maqola boʻlimlariga mos qismlarga ajratildi, materiallari qayta sozlandi va har bir qism uchun yumshoq soyalar (ambient occlusion) hisoblab qoʻshildi. Bugʻ kamerasi, issiqlik quvurlari, termal qoplama, 16-pin ulagich va ARGB chizigʻi asl modelda yoʻq, ular sxematik tarzda qoʻshilgan.</p>
+    <p class="small">3D sahna ochiq manbali <a href="https://github.com/mrdoob/three.js" target="_blank" rel="noopener">Three.js</a> kutubxonasida (MIT litsenziyasi) brauzerning oʻzida quriladi. ASUS, ROG, NVIDIA va GeForce tegishli egalarining savdo belgilaridir.</p>
+  </div>
+</footer>
+
+<script>
+  setTimeout(function () {
+    if (!window.__astralReady) {
+      var n = document.getElementById('stage-note'), l = document.getElementById('loader');
+      if (l) l.hidden = true;
+      if (n) { n.hidden = false; n.textContent = '3D sahnani yuklab boʻlmadi. Brauzeringizda WebGL oʻchirilgan boʻlishi mumkin. Maqola matni toʻliq oʻqiladi.'; }
+    }
+  }, 9000);
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const stage = document.getElementById('stage');
+const canvas = document.getElementById('gl');
+const note = document.getElementById('stage-note');
+const loaderEl = document.getElementById('loader');
+const loaderFill = document.getElementById('loader-fill');
+const loaderPct = document.getElementById('loader-pct');
+let modelState = 'loading';   // 'loading' | 'ready' | 'failed'
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+} catch (err) {
+  window.__astralReady = true;
+  document.getElementById('loader').hidden = true;
+  note.hidden = false;
+  note.textContent = '3D sahnani ochib boʻlmadi: brauzeringizda WebGL oʻchirilgan boʻlishi mumkin. Maqola matni toʻliq oʻqiladi.';
+  throw err;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+// product-photo studio: a dark room with large softboxes, so metal and chrome get crisp, long highlights
+function studioScene() {
+  const s = new THREE.Scene();
+  s.add(new THREE.Mesh(new THREE.BoxGeometry(80, 40, 80), new THREE.MeshBasicMaterial({ color: 0x0c0e13, side: THREE.BackSide })));
+  const box = (w, h, hex, k, pos) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(hex).multiplyScalar(k), side: THREE.DoubleSide }));
+    m.position.set(pos[0], pos[1], pos[2]); m.lookAt(0, 0, 0); s.add(m);
+  };
+  box(46, 9, 0xffffff, 7, [0, 19, 4]);        // long overhead strip
+  box(8, 26, 0xfff2e4, 5, [-36, 3, 14]);      // left key softbox
+  box(8, 26, 0xe4f0ff, 3.4, [36, 4, -10]);    // right rim softbox
+  box(30, 5, 0xffffff, 2.6, [0, -6, 36]);     // low front strip: lights the fan rings
+  box(14, 14, 0xffb37c, 1.1, [0, -19, 0]);    // warm floor bounce
+  box(10, 30, 0x9fd8ff, 1.4, [8, 2, -38]);    // cool back light for the backplate
+  return s;
+}
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(studioScene(), 0.02).texture;
+scene.environmentIntensity = 1.15;
+
+const camera = new THREE.PerspectiveCamera(32, 1, 0.5, 700);
+
+const hemi = new THREE.HemisphereLight(0xd6defa, 0x1c1610, 0.3);
+const keyLight = new THREE.DirectionalLight(0xfff0e2, 2.2); keyLight.position.set(22, 30, 26);
+const rimLight = new THREE.DirectionalLight(0x8fdcff, 1.6); rimLight.position.set(-26, 12, -30);
+const warmLight = new THREE.DirectionalLight(0xffa86b, 0.5); warmLight.position.set(-20, -18, 22);
+scene.add(hemi, keyLight, rimLight, warmLight);
+
+/* ---------- helpers ---------- */
+const root = new THREE.Group();
+scene.add(root);
+const parts = {};
+function part(k, ex) {
+  const g = new THREE.Group();
+  g.userData.part = k;
+  root.add(g);
+  parts[k] = { g, mats: [], ex: new THREE.Vector3(ex[0], ex[1], ex[2]), op: 1 };
+  return g;
+}
+function M(k, o) { const m = new THREE.MeshStandardMaterial(o); m.transparent = true; parts[k].mats.push(m); return m; }
+function add(k, geo, mat, x = 0, y = 0, z = 0) { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parts[k].g.add(m); return m; }
+const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+const rbox = (w, h, d, r) => new RoundedBoxGeometry(w, h, d, 3, r);
+function rrect(Ctor, x, y, w, h, r) {
+  const s = new Ctor();
+  s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r);
+  s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+  return s;
+}
+function circlePath(cx, cy, r) { const p = new THREE.Path(); p.absarc(cx, cy, r, 0, Math.PI * 2, true); return p; }
+function rng(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  return t;
+}
+
+/* ---------- model constants (1 unit = 10 mm) ---------- */
+const GX = -6.4, GY = -0.33, FY = 0.09, FAN_X = [-11.83, -0.28, 11.45];
+const PCB = { x0: -17.4, x1: 5.4, y0: -6.2, y1: 6.4 };
+
+const MEM = [];
+[-1, 1].forEach(s => [-2.4, -0.8, 0.8, 2.4].forEach(dy => MEM.push({ x: GX + s * 4.3, y: GY + dy, w: 1.2, h: 1.4 })));
+[-1, 1].forEach(s => [-2.7, -0.9, 0.9, 2.7].forEach(dx => MEM.push({ x: GX + dx, y: GY + s * 4.2, w: 1.4, h: 1.2 })));
+const CHOKES = [], FETS = [], CAPS = [];
+[-0.2, 1.4, 3.0].forEach(x => { for (let i = 0; i < 8; i++) { const y = -4.9 + i * 1.3; CHOKES.push({ x, y }); FETS.push({ x: x + 0.78, y }); } });
+for (let i = 0; i < 8; i++) CAPS.push({ x: 4.6, y: -4.9 + i * 1.3 });
+for (let i = 0; i < 7; i++) { const y = GY - 3.9 + i * 1.3; CHOKES.push({ x: -13.2, y }); FETS.push({ x: -12.42, y }); }
+const PORTS = [
+  { y: -4.6, h: 1.75, d: 0.56 }, { y: -2.4, h: 1.75, d: 0.56 }, { y: -0.2, h: 1.75, d: 0.56 },
+  { y: 2.1, h: 1.55, d: 0.5 }, { y: 4.4, h: 1.55, d: 0.5 }
+];
+
+/* ---------- textures ---------- */
+const pcbTex = canvasTex(2048, 1130, (g, W, H) => {
+  const U = x => (x - PCB.x0) / (PCB.x1 - PCB.x0) * W;
+  const V = y => (PCB.y1 - y) / (PCB.y1 - PCB.y0) * H;
+  const S = W / (PCB.x1 - PCB.x0);
+  g.fillStyle = '#0b100f'; g.fillRect(0, 0, W, H);
+  const r = rng(11);
+  for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(48,78,66,${r() * 0.12})`; g.fillRect(r() * W, r() * H, 2 + r() * 7, 2 + r() * 7); }
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  for (let i = 0; i < 380; i++) {
+    let x = r() * W, y = r() * H;
+    g.strokeStyle = `rgba(178,134,76,${0.12 + r() * 0.22})`; g.lineWidth = 1.2 + r() * 2.6;
+    g.beginPath(); g.moveTo(x, y);
+    const n = 3 + ((r() * 3) | 0);
+    for (let s = 0; s < n; s++) { const len = 30 + r() * 220, a = ((r() * 8) | 0) * Math.PI / 4; x += Math.cos(a) * len; y += Math.sin(a) * len; g.lineTo(x, y); }
+    g.stroke();
+    g.fillStyle = 'rgba(196,156,96,.6)'; g.beginPath(); g.arc(x, y, 3.2, 0, Math.PI * 2); g.fill();
+  }
+  // bus fan-out from the GPU to each memory chip
+  g.strokeStyle = 'rgba(196,150,88,.42)'; g.lineWidth = 1.6;
+  MEM.forEach(m => {
+    for (let k = -3; k <= 3; k++) {
+      g.beginPath();
+      const ox = (m.w > m.h ? k * 0.12 : 0) * S, oy = (m.w > m.h ? 0 : k * 0.12) * S;
+      g.moveTo(U(GX) + ox * 0.6, V(GY) + oy * 0.6); g.lineTo(U(m.x) + ox, V(m.y) + oy); g.stroke();
+    }
+  });
+  // silkscreen outlines
+  g.strokeStyle = 'rgba(226,231,240,.42)'; g.lineWidth = 2;
+  const outline = (x, y, w, h) => g.strokeRect(U(x - w / 2) - 5, V(y + h / 2) - 5, w * S + 10, h * S + 10);
+  MEM.forEach(m => outline(m.x, m.y, m.w, m.h));
+  CHOKES.forEach(c => outline(c.x, c.y, 0.9, 0.9));
+  outline(GX, GY, 5.0, 5.0);
+  g.fillStyle = 'rgba(226,231,240,.55)'; g.font = '600 22px "JetBrains Mono", monospace';
+  g.fillText('U1', U(GX + 2.7), V(GY + 2.8));
+  g.fillText('12V-2x6', U(1.9), V(5.2));
+  g.fillText('BIOS  P | Q', U(-3.4), V(5.6));
+  g.fillText('FAN1  FAN2', U(-3.4), V(-6.0) - 4);
+  MEM.forEach((m, i) => g.fillText('M' + (i + 1), U(m.x - m.w / 2), V(m.y - m.h / 2) + 28));
+});
+const goldTex = canvasTex(1024, 96, (g, W, H) => {
+  g.fillStyle = '#16301f'; g.fillRect(0, 0, W, H);
+  const n = 64, sw = W / n;
+  for (let i = 0; i < n; i++) { if (i === 11) continue; g.fillStyle = i % 2 ? '#d9ae4f' : '#c99a3c'; g.fillRect(i * sw + sw * 0.18, 6, sw * 0.64, H - 6); }
+});
+const dieTex = canvasTex(512, 460, (g, W, H) => {
+  g.fillStyle = '#8b929c'; g.fillRect(0, 0, W, H);
+  const r = rng(29);
+  const cols = 12, rows = 8, pw = W / cols, ph = H / rows;
+  for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+    if (j === 3 || j === 4) { g.fillStyle = `rgba(70,76,88,${0.25 + r() * 0.15})`; g.fillRect(i * pw + 2, j * ph + 2, pw - 4, ph - 4); continue; }
+    const l = Math.round(120 + r() * 50); g.fillStyle = `rgb(${l},${l + 6},${l + 16})`; g.fillRect(i * pw + 3, j * ph + 3, pw - 6, ph - 6);
+    g.fillStyle = 'rgba(40,46,58,.35)'; g.fillRect(i * pw + 6, j * ph + 6, pw * 0.4, ph * 0.3);
+  }
+  g.strokeStyle = 'rgba(200,206,216,.6)'; g.lineWidth = 6; g.strokeRect(3, 3, W - 6, H - 6);
+});
+const chipTex = canvasTex(256, 256, (g, W, H) => {
+  g.fillStyle = '#131418'; g.fillRect(0, 0, W, H);
+  g.fillStyle = 'rgba(190,196,208,.55)'; g.font = '600 40px "JetBrains Mono", monospace';
+  g.fillText('GDDR7', 40, 118); g.font = '500 28px "JetBrains Mono", monospace'; g.fillText('16Gb · 28G', 40, 160);
+  g.beginPath(); g.arc(34, 34, 9, 0, Math.PI * 2); g.fillStyle = 'rgba(190,196,208,.4)'; g.fill();
+});
+
+/* ---------- shroud (die-cast front cover) ---------- */
+part('shroud', [0, 0, 9]);
+const mShell = M('shroud', { color: 0x252931, metalness: 0.85, roughness: 0.36 });
+const mShell2 = M('shroud', { color: 0x59606c, metalness: 0.92, roughness: 0.26 });
+const mDuct = M('shroud', { color: 0x111318, metalness: 0.4, roughness: 0.62, side: THREE.DoubleSide });
+{
+  const plate = rrect(THREE.Shape, -17.85, -7.4, 35.7, 14.8, 1.0);
+  FAN_X.forEach(cx => plate.holes.push(circlePath(cx, FY, 5.45)));
+  const geo = new THREE.ExtrudeGeometry(plate, { depth: 0.4, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.05, bevelSegments: 2, curveSegments: 72 });
+  add('shroud', geo, mShell, 0, 0, 3.32);
+  [-5.8, 5.8].forEach(cx => [1, -1].forEach(sy => {
+    const w = new THREE.Shape();
+    w.moveTo(cx - 2.0, sy * 7.25); w.lineTo(cx + 2.0, sy * 7.25); w.lineTo(cx + 0.5, sy * 5.3); w.lineTo(cx - 0.5, sy * 5.3); w.closePath();
+    add('shroud', new THREE.ExtrudeGeometry(w, { depth: 0.1, bevelEnabled: false }), mShell2, 0, 0, 3.77);
+  }));
+  const duct = new THREE.CylinderGeometry(5.45, 5.45, 0.95, 72, 1, true); duct.rotateX(Math.PI / 2);
+  FAN_X.forEach(cx => add('shroud', duct, mDuct, cx, FY, 2.85));
+  add('shroud', box(35.4, 0.16, 1.5), mShell, 0, 7.32, 2.55);
+  add('shroud', box(35.4, 0.16, 1.5), mShell, 0, -7.32, 2.55);
+  add('shroud', box(0.2, 14.8, 7.0), mShell, 17.75, 0, -0.18);
+  add('shroud', box(0.2, 14.8, 1.5), mShell, -17.75, 0, 2.55);
+  add('shroud', box(30, 0.05, 0.08), mShell2, 0, -7.0, 3.82);
+}
+
+/* ---------- ARGB light strip ---------- */
+part('light', [0, 0, 9]);
+const mLight = M('light', { color: 0x0b0b0d, emissive: 0x66ccff, emissiveIntensity: 2.2, roughness: 0.4 });
+const LIGHT_Y = 6.93, LIGHT_Z = 3.0;
+add('light', box(22, 0.05, 0.5), mLight, 1.5, LIGHT_Y, LIGHT_Z);
+// soft halo above the strip, so the ARGB reads as light rather than a coloured stick
+const glowMat = new THREE.MeshBasicMaterial({
+  map: canvasTex(32, 128, (g, w, h) => { const gr = g.createLinearGradient(0, h, 0, 0); gr.addColorStop(0, 'rgba(255,255,255,0.85)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.3)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }),
+  color: 0x66ccff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false
+});
+glowMat.userData.k = 0.5; glowMat.userData.noDepth = true;
+parts.light.mats.push(glowMat);
+{ const halo = new THREE.Mesh(new THREE.PlaneGeometry(22.6, 1.3), glowMat); halo.position.set(1.5, LIGHT_Y + 0.65, LIGHT_Z); parts.light.g.add(halo); }
+
+/* ---------- fans ---------- */
+function bladeGeo(r0, r1) {
+  const sweep = 0.55, w0 = 0.4, w1 = 0.55, N = 16;
+  const lead = s => sweep * s, wid = s => w0 + (w1 - w0) * s;
+  const pol = (r, a) => new THREE.Vector2(r * Math.cos(a), r * Math.sin(a));
+  const pts = [];
+  for (let i = 0; i <= N; i++) { const s = i / N; pts.push(pol(r0 + (r1 - r0) * s, lead(s))); }
+  for (let i = 1; i < 6; i++) pts.push(pol(r1, lead(1) - wid(1) * i / 6));
+  for (let i = N; i >= 0; i--) { const s = i / N; pts.push(pol(r0 + (r1 - r0) * s, lead(s) - wid(s))); }
+  const geo = new THREE.ExtrudeGeometry(new THREE.Shape(pts), { depth: 0.05, bevelEnabled: false });
+  const p = geo.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i);
+    const r = Math.hypot(v.x, v.y), s = THREE.MathUtils.clamp((r - r0) / (r1 - r0), 0, 1);
+    const t = THREE.MathUtils.clamp((Math.atan2(v.y, v.x) - (lead(s) - wid(s))) / wid(s), 0, 1);
+    p.setZ(i, v.z - 0.025 + (t - 0.5) * (0.85 - 0.25 * s) + Math.sin(t * Math.PI) * 0.08);
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+const SPIN = [];
+function fanSet(k, R, list, flip) {
+  const mats = {
+    blade: M(k, { color: 0x17191e, metalness: 0.15, roughness: 0.55, side: THREE.DoubleSide }),
+    hub: M(k, { color: 0x1a1d23, metalness: 0.35, roughness: 0.45 }),
+    cap: M(k, { color: 0x5d636e, metalness: 0.9, roughness: 0.25 }),
+    band: M(k, { color: 0x1b1e24, metalness: 0.3, roughness: 0.5, side: THREE.DoubleSide })
+  };
+  const bg = bladeGeo(R * 0.27, R * 0.965);
+  const hubG = new THREE.CylinderGeometry(R * 0.28, R * 0.28, 0.6, 48); hubG.rotateX(Math.PI / 2);
+  const capG = new THREE.CylinderGeometry(R * 0.2, R * 0.21, 0.05, 48); capG.rotateX(Math.PI / 2);
+  const bandG = new THREE.CylinderGeometry(R * 0.975, R * 0.975, 0.5, 120, 1, true); bandG.rotateX(Math.PI / 2);
+  const strutG = box(R * 0.72, 0.16, 0.12);
+  list.forEach(([x, y, z]) => {
+    const grp = new THREE.Group(); grp.position.set(x, y, z); if (flip) grp.rotation.y = Math.PI;
+    parts[k].g.add(grp);
+    const spin = new THREE.Group(); grp.add(spin); SPIN.push(spin);
+    for (let i = 0; i < 11; i++) { const b = new THREE.Mesh(bg, mats.blade); b.rotation.z = i * Math.PI * 2 / 11; spin.add(b); }
+    spin.add(new THREE.Mesh(hubG, mats.hub));
+    const cap = new THREE.Mesh(capG, mats.cap); cap.position.z = 0.32; spin.add(cap);
+    spin.add(new THREE.Mesh(bandG, mats.band));
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + Math.PI / 4, st = new THREE.Mesh(strutG, mats.hub);
+      st.rotation.z = a; st.position.set(Math.cos(a) * R * 0.62, Math.sin(a) * R * 0.62, -0.46); grp.add(st);
+    }
+  });
+}
+part('fans', [0, 0, 12.5]);
+fanSet('fans', 5.2, FAN_X.map(x => [x, FY, 2.95]), false);
+part('rearfan', [0, 0, -9.5]);
+fanSet('rearfan', 4.85, [[11.6, FY, -3.32]], true);
+
+/* ---------- heatsink fins ---------- */
+part('fins', [0, 0, 5.5]);
+const mFin = M('fins', { color: 0xc3c9d2, metalness: 1, roughness: 0.34 });
+{
+  const xs = []; for (let x = -16.9; x <= 16.91; x += 0.28) xs.push(x);
+  const fins = new THREE.InstancedMesh(box(1, 1, 1), mFin, xs.length);
+  const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), pos = new THREE.Vector3();
+  xs.forEach((x, i) => {
+    const z0 = x > 5.7 ? -2.85 : -2.3, z1 = 2.3;
+    pos.set(x, 0, (z0 + z1) / 2); sc.set(0.055, 13.8, z1 - z0);
+    fins.setMatrixAt(i, mtx.compose(pos, q, sc));
+  });
+  parts.fins.g.add(fins);
+}
+
+/* ---------- vapor chamber ---------- */
+part('vc', [0, 0, 0.3]);
+const mVC = M('vc', { color: 0xd0874f, metalness: 1, roughness: 0.3 });
+add('vc', rbox(10.4, 9.6, 0.2, 0.08), mVC, GX, GY, -2.66);
+for (let j = 0; j < 9; j++) add('vc', box(9.8, 0.36, 0.12), mVC, GX, GY - 4 + j, -2.5);
+
+/* ---------- heat pipes ---------- */
+part('pipes', [0, 0, 1.1]);
+const mCu = M('pipes', { color: 0xc77a45, metalness: 1, roughness: 0.24 });
+{
+  const ZB = -2.3, endG = new THREE.SphereGeometry(0.3, 16, 12);
+  for (let i = 0; i < 8; i++) {
+    const y = GY - 3.5 + i, s = i % 2 === 0 ? 1 : -1, zt = -1.7 + (i >> 1) * 0.75;
+    const pts = [
+      [GX - s * 3.8, y, ZB], [GX, y, ZB], [GX + s * 3.0, y, ZB], [GX + s * 4.4, y, (ZB + zt) / 2],
+      [GX + s * 5.6, y, zt], [GX + s * 8.5, y, zt], [s * 15.2, y, zt]
+    ].map(p => new THREE.Vector3(p[0], p[1], p[2]));
+    const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+    add('pipes', new THREE.TubeGeometry(curve, 180, 0.3, 14, false), mCu);
+    add('pipes', endG, mCu, pts[0].x, pts[0].y, pts[0].z);
+    add('pipes', endG, mCu, pts[6].x, pts[6].y, pts[6].z);
+  }
+}
+
+/* ---------- phase-change pad ---------- */
+part('pad', [0, 0, -1.4]);
+add('pad', box(2.45, 3.3, 0.04), M('pad', { color: 0xa2a8b2, metalness: 0.25, roughness: 0.55 }), GX, GY, -2.8);
+
+/* ---------- GPU package ---------- */
+part('gpu', [0, 0, -2.5]);
+{
+  add('gpu', rbox(5.0, 5.0, 0.18, 0.05), M('gpu', { color: 0x203629, metalness: 0.3, roughness: 0.5 }), GX, GY, -3.05);
+  const side = M('gpu', { color: 0x7a818c, metalness: 0.9, roughness: 0.25 });
+  const top = M('gpu', { map: dieTex, metalness: 0.85, roughness: 0.2 });
+  add('gpu', box(2.9, 2.6, 0.12), [side, side, side, side, top, side], GX, GY, -2.9);
+  const glue = M('gpu', { color: 0x30343c, metalness: 0.2, roughness: 0.3 });
+  const blob = new THREE.SphereGeometry(0.24, 16, 12); blob.scale(1, 1, 0.45);
+  [[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([a, b]) => add('gpu', blob, glue, GX + a * 2.3, GY + b * 2.3, -2.96));
+  const smd = new THREE.InstancedMesh(box(0.18, 0.1, 0.06), M('gpu', { color: 0xa0835a, metalness: 0.5, roughness: 0.4 }), 28);
+  const mtx = new THREE.Matrix4();
+  for (let i = 0; i < 28; i++) {
+    const side4 = i % 4, t = ((i >> 2) - 3) * 0.42;
+    const x = side4 < 2 ? GX + t : GX + (side4 === 2 ? 1.85 : -1.85);
+    const y = side4 < 2 ? GY + (side4 === 0 ? 1.7 : -1.7) : GY + t;
+    smd.setMatrixAt(i, mtx.makeTranslation(x, y, -2.93));
+  }
+  parts.gpu.g.add(smd);
+}
+
+/* ---------- GPU bracket (back of PCB) ---------- */
+part('gbrk', [0, 0, -3.4]);
+{
+  const mBr = M('gbrk', { color: 0x7d848f, metalness: 0.95, roughness: 0.3 });
+  const bar = rbox(7.4, 0.7, 0.14, 0.06);
+  add('gbrk', bar, mBr, GX, GY, -3.4).rotation.z = Math.PI / 4;
+  add('gbrk', bar, mBr, GX, GY, -3.4).rotation.z = -Math.PI / 4;
+  add('gbrk', rbox(2.6, 2.6, 0.16, 0.06), mBr, GX, GY, -3.41);
+}
+
+/* ---------- PCB ---------- */
+part('pcb', [0, 0, -2.5]);
+{
+  const edge = M('pcb', { color: 0x0c110f, metalness: 0.1, roughness: 0.7 });
+  const face = M('pcb', { map: pcbTex, metalness: 0.25, roughness: 0.55 });
+  add('pcb', box(PCB.x1 - PCB.x0, PCB.y1 - PCB.y0, 0.16), [edge, edge, edge, edge, face, face], (PCB.x0 + PCB.x1) / 2, (PCB.y0 + PCB.y1) / 2, -3.22);
+  const gold = M('pcb', { map: goldTex, metalness: 0.75, roughness: 0.3 });
+  add('pcb', box(8.6, 1.0, 0.16), [edge, edge, edge, edge, gold, gold], -11.2, -6.7, -3.22);
+  const dark = M('pcb', { color: 0x15161a, metalness: 0.3, roughness: 0.45 });
+  const white = M('pcb', { color: 0xdcdfe5, metalness: 0.1, roughness: 0.5 });
+  add('pcb', box(0.7, 0.3, 0.3), dark, -2.2, 6.15, -2.99);
+  add('pcb', box(0.2, 0.16, 0.2), white, -2.38, 6.15, -2.78);
+  add('pcb', box(1.0, 0.55, 0.55), white, -2.6, -5.6, -2.86);
+  add('pcb', box(1.0, 0.55, 0.55), white, -1.4, -5.6, -2.86);
+  const pos = [];
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 12; j++) pos.push([-15.2 + i * 0.5, -5.2 + j * 0.92]);
+  for (let i = 0; i < 14; i++) { pos.push([-10.3 + i * 0.5, -5.55]); pos.push([-10.3 + i * 0.5, 5.75]); }
+  const smd = new THREE.InstancedMesh(box(0.28, 0.16, 0.1), dark, pos.length);
+  const smd2 = new THREE.InstancedMesh(box(0.2, 0.12, 0.09), M('pcb', { color: 0x9c7b52, metalness: 0.4, roughness: 0.45 }), pos.length);
+  const mtx = new THREE.Matrix4();
+  pos.forEach(([x, y], i) => { smd.setMatrixAt(i, mtx.makeTranslation(x, y, -3.09)); smd2.setMatrixAt(i, mtx.makeTranslation(x + 0.22, y + 0.3, -3.09)); });
+  parts.pcb.g.add(smd, smd2);
+}
+
+/* ---------- memory ---------- */
+part('mem', [0, 0, -2.5]);
+{
+  const side = M('mem', { color: 0x121316, metalness: 0.35, roughness: 0.42 });
+  const top = M('mem', { map: chipTex, metalness: 0.35, roughness: 0.42 });
+  MEM.forEach(m => {
+    const mesh = add('mem', box(1.2, 1.4, 0.12), [side, side, side, side, top, side], m.x, m.y, -3.08);
+    if (m.w > m.h) mesh.rotation.z = Math.PI / 2;
+  });
+}
+
+/* ---------- VRM ---------- */
+part('vrm', [0, 0, -2.5]);
+{
+  const mChoke = M('vrm', { color: 0x5a5f68, metalness: 0.7, roughness: 0.4 });
+  const mFet = M('vrm', { color: 0x0f1013, metalness: 0.3, roughness: 0.4 });
+  const mCap = M('vrm', { color: 0x33294a, metalness: 0.6, roughness: 0.35 });
+  const mCtl = M('vrm', { color: 0x16171b, metalness: 0.3, roughness: 0.45 });
+  const chokeG = rbox(0.9, 0.9, 0.6, 0.08), fetG = box(0.5, 0.55, 0.1);
+  const capG = new THREE.CylinderGeometry(0.24, 0.24, 0.55, 20); capG.rotateX(Math.PI / 2);
+  CHOKES.forEach(c => add('vrm', chokeG, mChoke, c.x, c.y, -2.84));
+  FETS.forEach(f => add('vrm', fetG, mFet, f.x, f.y, -3.09));
+  CAPS.forEach(c => add('vrm', capG, mCap, c.x, c.y, -2.865));
+  add('vrm', box(0.9, 0.9, 0.1), mCtl, 0.8, 5.5, -3.09);
+}
+
+/* ---------- 16-pin connector ---------- */
+part('power', [0, 0, -2.5]);
+const ledMats = [];
+const PCX = 5.6, PCY = 6.26, PCZ = -2.555;   // empty top-right corner of the PCB, front face
+{
+  add('power', rbox(2.3, 1.0, 0.85, 0.08), M('power', { color: 0x15161a, metalness: 0.2, roughness: 0.5 }), PCX, PCY, PCZ);
+  const hole = M('power', { color: 0x040405, metalness: 0, roughness: 0.9 });
+  const holeG = box(0.24, 0.04, 0.24);
+  for (let k = 0; k < 6; k++) { const x = PCX + (k - 2.5) * 0.33; add('power', holeG, hole, x, PCY + 0.5, PCZ - 0.19); add('power', holeG, hole, x, PCY + 0.5, PCZ + 0.19); }
+  const ledG = new THREE.SphereGeometry(0.075, 12, 10);
+  for (let k = 0; k < 6; k++) {
+    const m = new THREE.MeshBasicMaterial({ color: 0x62d2e4, transparent: true, toneMapped: false });
+    ledMats.push(m);
+    const led = new THREE.Mesh(ledG, m); led.position.set(PCX + (k - 2.5) * 0.33, PCY + 0.1, PCZ + 0.44); parts.power.g.add(led);
+  }
+}
+
+/* ---------- I/O bracket and ports ---------- */
+part('io', [-1.6, 0, -2.5]);
+{
+  const steel = M('io', { color: 0xb9bfc8, metalness: 1, roughness: 0.24 });
+  const portM = M('io', { color: 0xa9afb8, metalness: 1, roughness: 0.3 });
+  const black = M('io', { color: 0x050506, metalness: 0, roughness: 0.9 });
+  const sh = rrect(THREE.Shape, -2.45, -6.1, 6.1, 12.8, 0.15);
+  PORTS.forEach(p => {
+    const zc = -3.14 + p.d / 2, u = -zc;
+    sh.holes.push(rrect(THREE.Path, u - p.d * 0.46, p.y - p.h * 0.46, p.d * 0.92, p.h * 0.92, 0.05));
+    add('io', box(1.8, p.h, p.d), portM, -16.75, p.y, zc);
+    add('io', box(0.05, p.h * 0.8, p.d * 0.66), black, -17.67, p.y, zc);
+  });
+  for (let c = 0; c < 6; c++) for (let r = 0; r < 13; r++) {
+    sh.holes.push(rrect(THREE.Path, -2.1 + c * 0.75 - 0.21, -5.6 + r * 0.9 - 0.31, 0.42, 0.62, 0.1));
+  }
+  const br = add('io', new THREE.ExtrudeGeometry(sh, { depth: 0.1, bevelEnabled: false, curveSegments: 6 }), steel, -17.98, 0, 0);
+  br.rotation.y = Math.PI / 2;
+  add('io', box(0.9, 0.08, 6.1), steel, -18.4, 6.66, -0.6);
+}
+
+/* ---------- backplate ---------- */
+part('backplate', [0, 0, -6.5]);
+{
+  const mBack = M('backplate', { color: 0x24272e, metalness: 0.85, roughness: 0.4 });
+  const mDuct2 = M('backplate', { color: 0x111318, metalness: 0.4, roughness: 0.6, side: THREE.DoubleSide });
+  const sh = rrect(THREE.Shape, -17.6, -7.3, 35.2, 14.6, 0.8);
+  sh.holes.push(circlePath(11.6, FY, 5.15));
+  for (let j = 0; j < 9; j++) sh.holes.push(rrect(THREE.Path, -15.1, -4.8 + j * 1.2 - 0.16, 4.6, 0.32, 0.15));
+  add('backplate', new THREE.ExtrudeGeometry(sh, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 1, curveSegments: 64 }), mBack, 0, 0, -3.8);
+  const duct = new THREE.CylinderGeometry(5.15, 5.15, 0.5, 72, 1, true); duct.rotateX(Math.PI / 2);
+  add('backplate', duct, mDuct2, 11.6, FY, -3.35);
+}
+
+/* ---------- background stars & airflow ---------- */
+const dotTex = canvasTex(64, 64, (g, w, h) => {
+  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, w, h);
+});
+const starMat = new THREE.PointsMaterial({ size: 1.3, map: dotTex, color: 0xbfd2ff, transparent: true, opacity: 0.7, depthWrite: false });
+{
+  const sr = rng(3), sp = [];
+  for (let i = 0; i < 700; i++) { const u = sr() * 2 - 1, th = sr() * Math.PI * 2, rr = 150 + sr() * 140, q = Math.sqrt(1 - u * u); sp.push(rr * q * Math.cos(th), rr * u, rr * q * Math.sin(th)); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+  scene.add(new THREE.Points(g, starMat));
+}
+const AIR_N = 280;
+const airPos = new Float32Array(AIR_N * 3), airVel = new Float32Array(AIR_N * 3), airLane = new Uint8Array(AIR_N);
+const ar = rng(5);
+function airReset(i, scatter) {
+  const k = (ar() * 3) | 0, a = ar() * Math.PI * 2, rr = Math.sqrt(ar()) * 4.6;
+  airLane[i] = k;
+  airPos[i * 3] = FAN_X[k] + Math.cos(a) * rr; airPos[i * 3 + 1] = FY + Math.sin(a) * rr; airPos[i * 3 + 2] = scatter ? -4 + ar() * 18 : 11 + ar() * 7;
+  airVel[i * 3] = 0; airVel[i * 3 + 1] = 0; airVel[i * 3 + 2] = -(7 + ar() * 4);
+}
+for (let i = 0; i < AIR_N; i++) airReset(i, true);
+const airGeo = new THREE.BufferGeometry(); airGeo.setAttribute('position', new THREE.BufferAttribute(airPos, 3));
+const airMat = new THREE.PointsMaterial({ size: 0.6, map: dotTex, color: 0x62d2e4, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+const airPts = new THREE.Points(airGeo, airMat); airPts.frustumCulled = false; airPts.visible = false;
+root.add(airPts);
+function airStep(dt) {
+  for (let i = 0; i < AIR_N; i++) {
+    const j = i * 3;
+    airPos[j] += airVel[j] * dt; airPos[j + 1] += airVel[j + 1] * dt; airPos[j + 2] += airVel[j + 2] * dt;
+    if (airLane[i] < 2) {
+      if (airPos[j + 2] < 1.6 && airVel[j + 1] === 0) { airVel[j + 1] = (airPos[j + 1] - FY >= 0 ? 1 : -1) * (6 + ar() * 3); airVel[j + 2] = -1.2; }
+      if (Math.abs(airPos[j + 1]) > 11) airReset(i, false);
+    } else if (airPos[j + 2] < -12) airReset(i, false);
+  }
+  airGeo.attributes.position.needsUpdate = true;
+}
+
+/* ---------- part metadata ---------- */
+const CENTER = {};
+for (const k in parts) {
+  const b = new THREE.Box3().setFromObject(parts[k].g);
+  const c = b.getCenter(new THREE.Vector3());
+  CENTER[k] = { mid: c, top: new THREE.Vector3(c.x, b.max.y, c.z) };
+}
+
+const STEPS = {
+  hero:     { tgt: [0, -0.5, 0], rel: [24, 11, 54], ex: 0, focus: [], fan: 1 },
+  overview: { tgt: [0, 0, 0], rel: [-42, 14, 40], ex: 0, focus: [], fan: 1 },
+  layers:   { tgt: [0, 0, 2.5], rel: [46, 22, 40], ex: 1, focus: [], fan: 0.6 },
+  gpu:      { tgt: [GX, GY, -5.4], rel: [3, -15, 10.5], ex: 1, focus: ['gpu', 'gbrk'], fan: 0.4, ghost: 0.05, anchor: ['gpu', [GX + 1.2, GY + 1.6, -2.82]] },
+  pad:      { tgt: [GX, GY, -4.4], rel: [-12, -11, 1.6], ex: 1, focus: ['pad', 'gpu', 'vc'], fan: 0.4, ghost: 0.05, anchor: ['pad', [GX + 1.2, GY - 1.6, -2.78]] },
+  mem:      { tgt: [GX, GY, -5.4], rel: [10, -14, 9], ex: 1, focus: ['mem'], fan: 0.4, ghost: 0.05, anchor: ['mem', [-2.13, 1.05, -2.88]] },
+  vrm:      { tgt: [0.8, 0, -5.4], rel: [11, -12, 7], ex: 1, focus: ['vrm'], fan: 0.4, ghost: 0.05, anchor: ['vrm', [0.23, 0.41, -2.58]] },
+  power:    { tgt: [PCX, PCY - 0.3, -5.1], rel: [7, 9, 4], ex: 1, focus: ['power'], fan: 0.4, ghost: 0.05, anchor: ['power', [PCX, PCY + 0.5, PCZ]] },
+  cooling:  { tgt: [GX + 3, GY, -1.4], rel: [17, -22, 11], ex: 1, focus: ['vc', 'pipes'], fan: 0.5, ghost: 0.06, anchor: ['vc', [GX - 5.2, GY - 4.8, -2.56]] },
+  fins:     { tgt: [0, 0, 5.5], rel: [-34, 22, 30], ex: 1, focus: ['fins'], fan: 0.5, ghost: 0.06, anchor: ['fins', [-8, 6.6, 1.0]] },
+  fans:     { tgt: [1, 0, 1], rel: [30, 24, 42], ex: 0, focus: ['fans', 'rearfan'], fan: 3, air: 1, ghost: 0.35, anchor: ['fans', [FAN_X[1] + 3.5, FY + 3.5, 3.0]] },
+  rearfan:  { tgt: [5, 0, -2], rel: [26, 10, -40], ex: 0, focus: ['rearfan', 'fins'], fan: 3, air: 1, ghost: 0.35, anchor: ['rearfan', [11.5 + 3.3, 3.3, -3.6]] },
+  shell:    { tgt: [0, 0, 2], rel: [-42, 16, 40], ex: 0.45, focus: ['shroud', 'light', 'backplate'], fan: 0.8, ghost: 0.12, anchor: ['light', [-6, LIGHT_Y, LIGHT_Z]] },
+  io:       { tgt: [-17.6, -2.4, -1.6], rel: [-22, 4, 10], ex: 0, focus: ['io'], fan: 0.8, ghost: 0.25, anchor: ['io', [-17.55, 0.34, -2.39]] },
+  pcb:      { tgt: [-4, 0, -5.5], rel: [2, -26, 22], ex: 1, focus: ['pcb', 'gpu', 'mem', 'vrm', 'power', 'io', 'gbrk'], fan: 0.4, ghost: 0.05, anchor: ['pcb', [-14.5, 4.6, -2.98]] },
+  tests:    { tgt: [0, -0.5, 0], rel: [30, 8, 52], ex: 0, focus: [], fan: 2.2 },
+  price:    { tgt: [0, 0, 0], rel: [-18, 26, 52], ex: 0, focus: [], fan: 1 },
+  verdict:  { tgt: [0, 0, 1], rel: [4, -12, 60], ex: 0.18, focus: [], fan: 1 }
+};
+const PART_INFO = {
+  fans:      { name: 'Old ventilyatorlar', sub: '3 × Axial-tech', view: 'fans' },
+  rearfan:   { name: 'Orqa ventilyator', sub: 'toʻrtinchi ventilyator', view: 'rearfan' },
+  shroud:    { name: 'Quyma metall qobiq', sub: 'die-cast ramka', view: 'shell' },
+  light:     { name: 'Aura ARGB chizigʻi', sub: 'bilvosita yoritish', view: 'shell' },
+  fins:      { name: 'Radiator qovurgʻalari', sub: 'zich alyuminiy', view: 'fins' },
+  pipes:     { name: 'Issiqlik quvurlari', sub: '8 ta mis quvur', view: 'cooling' },
+  vc:        { name: 'Bugʻ kamerasi', sub: 'frezalangan ariqchalar', view: 'cooling' },
+  pad:       { name: 'Termal qoplama', sub: 'phase-change', view: 'pad' },
+  gpu:       { name: 'GB202 protsessor', sub: '92,2 mlrd tranzistor', view: 'gpu' },
+  mem:       { name: 'GDDR7 xotira', sub: '16 × 2 GB · 512-bit', view: 'mem' },
+  vrm:       { name: 'Quvvat zanjiri (VRM)', sub: '24 + 7 faza', view: 'vrm' },
+  power:     { name: '16-pin ulagich', sub: '600 W · Power Detector+', view: 'power' },
+  pcb:       { name: 'Plata', sub: 'himoya qoplamasi · Dual BIOS', view: 'pcb' },
+  io:        { name: 'Chiqish portlari', sub: '3 × DP 2.1b · 2 × HDMI 2.1b', view: 'io' },
+  gbrk:      { name: 'GPU kronshteyni', sub: 'teng bosim taqsimoti', view: 'gpu' },
+  backplate: { name: 'Orqa plastina', sub: 'die-cast · ventilyator oynasi', view: 'shell' }
+};
+
+/* ---------- state ---------- */
+let curKey = 'hero';
+const explorer = { sel: null, ex: 1 };
+const tmpT = new THREE.Vector3();
+function exploreState() {
+  if (explorer.sel) {
+    const k = explorer.sel, v = STEPS[PART_INFO[k].view];
+    return {
+      tgtFn: () => tmpT.copy(CENTER[k].mid).addScaledVector(parts[k].ex, exCur),
+      rel: v.rel, ex: explorer.ex, focus: [k], fan: v.fan, ghost: 0.06,
+      anchor: [k, CENTER[k].top.toArray()], name: PART_INFO[k].name, sub: PART_INFO[k].sub
+    };
+  }
+  return { tgt: [0, 0, 2.5], rel: [44, 20, 44], ex: explorer.ex, focus: [], fan: 1 };
+}
+function state() { return curKey === 'explore' ? exploreState() : (STEPS[curKey] || STEPS.hero); }
+
+const callout = document.getElementById('callout');
+const coName = document.getElementById('co-name');
+const coSub = document.getElementById('co-sub');
+const coTag = callout.querySelector('.tag');
+const hudPart = document.getElementById('hud-part');
+const hudBar = document.getElementById('hud-bar');
+function setCalloutText(name, sub) { coName.textContent = name || ''; coSub.textContent = sub || ''; }
+
+const sections = [...document.querySelectorAll('.step')];
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target;
+    curKey = el.dataset.step;
+    hudPart.textContent = el.dataset.label || '';
+    if (curKey === 'explore') {
+      const s = exploreState(); setCalloutText(s.name, s.sub);
+    } else setCalloutText(el.dataset.label, el.dataset.sub);
+    idle = 0;
+  });
+}, { rootMargin: '-49% 0px -49% 0px' });
+sections.forEach(s => io.observe(s));
+
+let progQueued = false;
+function updateProgress() {
+  progQueued = false;
+  const max = document.documentElement.scrollHeight - innerHeight;
+  hudBar.style.width = (max > 0 ? Math.min(100, scrollY / max * 100) : 0) + '%';
+}
+addEventListener('scroll', () => { if (!progQueued) { progQueued = true; requestAnimationFrame(updateProgress); } }, { passive: true });
+updateProgress();
+
+/* ---------- explorer UI ---------- */
+const chips = [...document.querySelectorAll('.chip[data-part]')];
+const slider = document.getElementById('explode');
+const sliderOut = document.getElementById('explode-out');
+function syncSlider() { slider.value = String(Math.round(explorer.ex * 100)); sliderOut.textContent = slider.value + '%'; }
+function selectPart(k, force) {
+  explorer.sel = (!force && explorer.sel === k) ? null : k;
+  chips.forEach(c => c.setAttribute('aria-pressed', String(c.dataset.part === explorer.sel)));
+  if (explorer.sel) { explorer.ex = STEPS[PART_INFO[k].view].ex; syncSlider(); }
+  const s = exploreState(); setCalloutText(s.name, s.sub);
+  if (curKey === 'explore') hudPart.textContent = explorer.sel ? PART_INFO[explorer.sel].name : 'Erkin koʻrish';
+}
+chips.forEach(c => c.addEventListener('click', () => selectPart(c.dataset.part)));
+slider.addEventListener('input', () => { explorer.ex = Number(slider.value) / 100; sliderOut.textContent = slider.value + '%'; });
+document.getElementById('btn-assemble').addEventListener('click', () => { explorer.ex = 0; syncSlider(); });
+document.getElementById('btn-explode').addEventListener('click', () => { explorer.ex = 1; syncSlider(); });
+document.getElementById('btn-clear').addEventListener('click', () => { if (explorer.sel) selectPart(explorer.sel); });
+
+/* ---------- theme ---------- */
+const mqLight = matchMedia('(prefers-color-scheme: light)');
+let dark = true;
+function applyTheme() {
+  const a = document.documentElement.getAttribute('data-theme');
+  dark = a ? a === 'dark' : !mqLight.matches;
+  const air = getComputedStyle(document.documentElement).getPropertyValue('--air').trim() || '#62d2e4';
+  airMat.color.set(air);
+  ledMats.forEach(m => m.color.set(air));
+  airMat.blending = dark ? THREE.AdditiveBlending : THREE.NormalBlending;
+  airMat.needsUpdate = true;
+  starMat.opacity = dark ? 0.7 : 0;
+  renderer.toneMappingExposure = dark ? 1.18 : 1.15;
+  hemi.intensity = dark ? 0.3 : 0.6;
+}
+mqLight.addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+applyTheme();
+
+/* ---------- layout ---------- */
+let W = 1, H = 1, colRight = 0, desk = true;
+function resize() {
+  W = stage.clientWidth || innerWidth; H = stage.clientHeight || innerHeight;
+  desk = W >= 900;
+  renderer.setSize(W, H, false);
+  camera.aspect = W / H;
+  const ref = document.querySelector('.step:not(.hero) .panel');
+  colRight = desk && ref ? ref.getBoundingClientRect().right : 0;
+  if (desk) camera.setViewOffset(W, H, -colRight / 2, 0, W, H);
+  else camera.setViewOffset(W, H, 0, H * 0.2, W, H);
+  camera.updateProjectionMatrix();
+  loaderEl.style.left = (desk ? (W + colRight) / 2 : W / 2) + 'px';
+  loaderEl.style.top = (desk ? H / 2 : H * 0.3) + 'px';
+}
+function fitFactor() {
+  const a = W / H;
+  const vf = desk ? Math.max(0.45, (W - colRight) / W) : 1;
+  const fw = (desk ? 1.2 : 1.1) / (a * vf);
+  return desk ? Math.max(1, fw) : Math.max(0.85, fw, 1 / 0.6);
+}
+addEventListener('resize', resize);
+resize();
+
+/* ---------- pointer orbit & picking ---------- */
+let yaw = 0, pitch = 0, vYaw = 0, dragging = false, lx = 0, ly = 0, moved = 0, idle = 0;
+canvas.addEventListener('pointerdown', e => {
+  dragging = true; lx = e.clientX; ly = e.clientY; moved = 0; vYaw = 0;
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+});
+canvas.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const dx = e.clientX - lx, dy = e.clientY - ly;
+  lx = e.clientX; ly = e.clientY; moved += Math.abs(dx) + Math.abs(dy);
+  yaw -= dx * 0.006; vYaw = -dx * 0.006;
+  pitch = THREE.MathUtils.clamp(pitch + dy * 0.004, -0.6, 0.6);
+  idle = 0;
+});
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function pick(e) {
+  if (curKey !== 'explore') return;
+  const r = canvas.getBoundingClientRect();
+  ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  let best = null, faint = null;
+  for (const h of ray.intersectObjects(root.children, true)) {
+    let o = h.object; while (o && !o.userData.part) o = o.parent;
+    if (!o) continue;
+    const k = o.userData.part;
+    if (parts[k].op > 0.4) { best = k; break; }
+    if (!faint) faint = k;
+  }
+  const k = best || faint;
+  if (k) selectPart(k, true);
+}
+canvas.addEventListener('pointerup', e => { if (!dragging) return; dragging = false; if (moved < 6) pick(e); });
+canvas.addEventListener('pointercancel', () => { dragging = false; });
+
+/* ---------- real model: "Rtx 5090 ROG ASTRAL" by Branz (Sketchfab, CC BY 4.0) ---------- */
+const MODEL_URL = 'astral-model.bin';
+const REPLACED = ['shroud', 'fans', 'rearfan', 'fins', 'pcb', 'gpu', 'mem', 'vrm', 'io', 'gbrk', 'backplate'];
+const GUNMETAL = { color: 0x2b2e35, metalness: 0.85, roughness: 0.38 };
+const SILVER = { color: 0xc8cdd5, metalness: 1, roughness: 0.28 };
+const LOOK = {
+  'vga case1.001': GUNMETAL, 'vga case1.003': GUNMETAL,
+  'Material.007': { color: 0x383c44, metalness: 0.9, roughness: 0.32 },
+  'Material.016': { color: 0xc9ced6, metalness: 1, roughness: 0.2 },
+  'Material.006': SILVER,
+  'Material.008': { color: 0x15161a, metalness: 0.4, roughness: 0.5 },
+  'fan vga.001': { color: 0x17191e, metalness: 0.1, roughness: 0.55 },
+  'heatsink.001': { color: 0xb9bfc8, metalness: 1, roughness: 0.34 },
+  'metal.001': { color: 0xc3c8cf, metalness: 1, roughness: 0.26 },
+  'hdmi port': { color: 0x0d0d10, metalness: 0.2, roughness: 0.6 },
+  'bracket.001': { color: 0x5d636d, metalness: 0.95, roughness: 0.3 },
+  'pcb vga colour.001': { color: 0x16181d, metalness: 0.15, roughness: 0.6 },
+  'card slot.001': { color: 0xd8aa45, metalness: 1, roughness: 0.3 },
+  'chip nvidia.001': { color: 0x7d8490, metalness: 0.9, roughness: 0.16 },
+  'floor chip nvidia.001': { color: 0x1f3a2b, metalness: 0.3, roughness: 0.5 },
+  'Material.010': { color: 0x1b1d22, metalness: 0.6, roughness: 0.45 }
+};
+const LOOK_PART = {
+  'fans|TEXT.001': SILVER, 'rearfan|TEXT.001': SILVER, 'backplate|TEXT.001': SILVER, 'shroud|TEXT.001': SILVER,
+  'vrm|resistor.009': { color: 0x2a2d33, metalness: 0.5, roughness: 0.55 },
+  'vrm|sag.001': { color: 0x22252a, metalness: 0.5, roughness: 0.55 },
+  'vrm|resistor.008': { color: 0x9aa0a8, metalness: 0.8, roughness: 0.35 },
+  'mem|resistor.008': { color: 0x16171a, metalness: 0.3, roughness: 0.45 },
+  'mem|ic color.001': { color: 0x16171a, metalness: 0.3, roughness: 0.45 },
+  'mem|TEXT.001': { color: 0x34373e, metalness: 0.2, roughness: 0.6 }
+};
+const COAT = {
+  'vga case1.001': { clearcoat: 0.6, clearcoatRoughness: 0.26 },
+  'Material.007': { clearcoat: 0.5, clearcoatRoughness: 0.3 }
+};
+// parts made of many stacked layers (120+ fins) add up when ghosted, so fade them further
+const GHOST_SCALE = { fins: 0.12, pcb: 0.6 };
+function setNote(t) { note.hidden = !t; if (t) note.textContent = t; }
+
+const isGzip = b => b[0] === 0x1f && b[1] === 0x8b;
+const isGlb = b => b[0] === 0x67 && b[1] === 0x6c && b[2] === 0x54 && b[3] === 0x46;
+async function fetchModel() {
+  // the binary file is used on a normal web host; a base64 text copy is the fallback for hosts that only serve text
+  for (const url of [MODEL_URL, 'astral-model.b64.txt']) {
+    let res;
+    try { res = await fetch(url); } catch (_) { continue; }
+    if (!res.ok) continue;
+    let bytes = await readBytes(res, url.endsWith('.txt') ? 3.6e6 : 2.7e6);
+    if (url.endsWith('.txt')) {
+      let bin;
+      try { bin = atob(new TextDecoder().decode(bytes).replace(/\s+/g, '')); } catch (_) { continue; }
+      bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    }
+    if (isGzip(bytes)) {
+      if (!('DecompressionStream' in window)) throw new Error('DecompressionStream yoʻq');
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+      return await new Response(stream).arrayBuffer();
+    }
+    if (isGlb(bytes)) return bytes.buffer;
+  }
+  throw new Error('model fayli topilmadi');
+}
+function setProgress(f) {
+  const pct = Math.round(Math.min(0.99, Math.max(0, f)) * 100);
+  loaderFill.style.width = pct + '%'; loaderPct.textContent = pct + '%';
+}
+async function readBytes(res, expected) {
+  const total = Number(res.headers.get('content-length')) || expected;
+  let bytes;
+  if (res.body && res.body.getReader) {
+    const reader = res.body.getReader(), chunks = [];
+    let got = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value); got += value.length;
+      setProgress(got / total);
+    }
+    bytes = new Uint8Array(got);
+    let o = 0; for (const c of chunks) { bytes.set(c, o); o += c.length; }
+  } else bytes = new Uint8Array(await res.arrayBuffer());
+  return bytes;
+}
+
+function installModel(gltf) {
+  for (const k of REPLACED) {
+    const p = parts[k];
+    for (const c of [...p.g.children]) { p.g.remove(c); c.traverse(o => o.geometry && o.geometry.dispose()); }
+    p.mats.forEach(m => m.dispose()); p.mats = [];
+  }
+  SPIN.length = 0;
+  const done = new Map();   // source material -> material used on screen
+  for (const node of [...gltf.scene.children]) {
+    const k = node.userData.part;
+    if (!parts[k]) continue;
+    parts[k].g.add(node);
+    if (node.userData.spin) SPIN.push(node);
+    node.traverse(o => {
+      if (!o.isMesh) return;
+      o.userData.part = k;
+      const src = o.material;
+      if (done.has(src)) { o.material = done.get(src); return; }
+      const matName = (src.name || '').split('|')[1] || '';
+      const look = LOOK_PART[k + '|' + matName] || LOOK[matName];
+      if (look) { src.color.set(look.color); src.metalness = look.metalness; src.roughness = look.roughness; }
+      let m = src;
+      const coat = (k === 'shroud' || k === 'backplate') && COAT[matName];
+      if (coat) {   // die-cast parts get a lacquer layer on top of the metal
+        m = new THREE.MeshPhysicalMaterial({ name: src.name, color: src.color, metalness: src.metalness, roughness: src.roughness, vertexColors: src.vertexColors, ...coat });
+        o.material = m; src.dispose();
+      }
+      m.transparent = true;
+      done.set(src, m);
+      parts[k].mats.push(m);
+    });
+  }
+  const shift = new THREE.Vector3();
+  for (const k in parts) {
+    const g = parts[k].g, b = new THREE.Box3().setFromObject(g);
+    if (b.isEmpty()) continue;
+    b.translate(shift.copy(g.position).negate());
+    const c = b.getCenter(new THREE.Vector3());
+    CENTER[k] = { mid: c, top: new THREE.Vector3(c.x, b.max.y, c.z) };
+  }
+  for (const k of REPLACED) parts[k].op = 0;   // fade the real parts in
+}
+
+function hideLoader() { loaderEl.classList.add('done'); setTimeout(() => { loaderEl.hidden = true; }, 600); }
+fetchModel()
+  .then(buf => { setProgress(1); return new Promise((ok, fail) => new GLTFLoader().parse(buf, '', ok, fail)); })
+  .then(gltf => { installModel(gltf); modelState = 'ready'; hideLoader(); window.__astralModel = true; })
+  .catch(err => {
+    console.warn('Astral model:', err);
+    modelState = 'failed';   // fall back to the schematic model built above
+    hideLoader();
+    setNote('Haqiqiy 3D modelni yuklab boʻlmadi, sxematik model koʻrsatilmoqda.');
+    setTimeout(() => setNote(''), 6000);
+  });
+
+/* ---------- loop ---------- */
+const clock = new THREE.Clock();
+const UP = new THREE.Vector3(0, 1, 0);
+const camT = new THREE.Vector3(), camDir = new THREE.Vector3(), off = new THREE.Vector3(), right = new THREE.Vector3();
+const tv = new THREE.Vector3(), relV = new THREE.Vector3();
+let exCur = 0, fanCur = 1, airCur = 0, camDist = 60, first = true;
+window.__astralSnap = () => { first = true; };   // jump straight to the current section's view
+
+function tick() {
+  const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+  const s = state();
+  const k = first ? 1 : 1 - Math.exp(-dt * (reduce ? 9 : 2.4));
+
+  exCur += (s.ex - exCur) * k;
+  for (const key in parts) {
+    const p = parts[key];
+    p.g.position.copy(p.ex).multiplyScalar(exCur);
+    const on = !s.focus.length || s.focus.includes(key);
+    let ghost = s.ghost ?? 0.07;
+    if (ghost < 0.2) ghost *= GHOST_SCALE[key] ?? 1;
+    const target = modelState === 'loading' ? 0 : (on ? 1 : ghost);   // nothing shows until the real model (or the fallback) is ready
+    p.op += (target - p.op) * k;
+    for (const m of p.mats) {
+      m.opacity = p.op * (m.userData.k ?? 1);
+      if (!m.userData.noDepth) m.depthWrite = p.op > 0.55;
+    }
+    p.g.visible = p.op > 0.008;
+  }
+
+  const fit = fitFactor();
+  const tgt = s.tgtFn ? s.tgtFn() : tv.set(s.tgt[0], s.tgt[1], s.tgt[2]);
+  relV.set(s.rel[0], s.rel[1], s.rel[2]);
+  const dTarget = relV.length() * fit; relV.normalize();
+  if (first) { camT.copy(tgt); camDir.copy(relV); camDist = dTarget; }
+  else {
+    camT.lerp(tgt, k);
+    if (camDir.dot(relV) < -0.5) camDir.y += 0.25;
+    camDir.lerp(relV, k).normalize();
+    camDist += (dTarget - camDist) * k;
+  }
+
+  if (!dragging) {
+    yaw += vYaw; vYaw *= 0.92; idle += dt;
+    if (idle > 3 && curKey !== 'explore') { const d = Math.min(1, dt * 0.8); yaw *= 1 - d; pitch *= 1 - d; }
+  }
+  const sway = reduce ? 0 : Math.sin(t * 0.18) * 0.05;
+  off.copy(camDir).multiplyScalar(camDist).applyAxisAngle(UP, yaw + sway);
+  right.crossVectors(off, UP).normalize();
+  const elev = Math.asin(THREE.MathUtils.clamp(off.y / off.length(), -1, 1));
+  const pAllowed = THREE.MathUtils.clamp(pitch, -1.35 - elev, 1.35 - elev);
+  off.applyAxisAngle(right, pAllowed);
+  camera.position.copy(camT).add(off);
+  camera.lookAt(camT);
+
+  fanCur += ((reduce ? Math.min(s.fan, 0.6) : s.fan) - fanCur) * k;
+  for (const sp of SPIN) sp.rotation.z -= fanCur * 5 * dt;
+
+  airCur += ((s.air && !reduce ? 1 : 0) - airCur) * k;
+  airPts.visible = airCur > 0.02;
+  if (airPts.visible) { airMat.opacity = airCur * 0.9; airStep(dt * Math.max(0.4, fanCur / 3)); }
+
+  mLight.emissive.setHSL((0.52 + t * 0.03) % 1, 0.75, 0.55);
+  glowMat.color.copy(mLight.emissive);
+  const pw = curKey === 'power' || (curKey === 'explore' && explorer.sel === 'power');
+  ledMats.forEach((m, i) => { m.opacity = parts.power.op * (pw ? 0.3 + 0.7 * Math.max(0, Math.sin(t * 3.2 - i * 0.6)) : 0.25); });
+
+  renderer.render(scene, camera);
+
+  // callout
+  let show = false;
+  if (s.anchor) {
+    const settled = camT.distanceTo(tgt) < 1.2 && Math.abs(camDist - dTarget) < dTarget * 0.08;
+    tv.set(s.anchor[1][0], s.anchor[1][1], s.anchor[1][2]);
+    parts[s.anchor[0]].g.localToWorld(tv);
+    tv.project(camera);
+    const x = (tv.x + 1) / 2 * W, y = (1 - tv.y) / 2 * H;
+    show = settled && tv.z < 1 && x > 12 && x < W - 12 && y > 70 && y < H - 12;
+    if (show) {
+      callout.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      const tw = coTag.offsetWidth || 180;
+      const flip = x + 30 + tw > W - 8 && x - 30 - tw >= 8;   // put the label left of the dot only when it fits there
+      const left = Math.max(8 - x, Math.min(W - 8 - tw - x, flip ? -30 - tw : 30));
+      coTag.style.left = left.toFixed(1) + 'px';
+      callout.classList.toggle('flip', flip);
+    }
+  }
+  callout.classList.toggle('on', show && modelState !== 'loading');
+
+  if (first) { first = false; window.__astralReady = true; }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
+
+</body>
+</html>
